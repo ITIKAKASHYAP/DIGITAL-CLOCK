@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Digital Wall Clock</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Orbitron for digital display, Inter for other text -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght{400;500;600}&display=swap" rel="stylesheet">
+    <style>
+        /* Body background for a clean, professional look */
+        body {
+            background: linear-gradient(135deg, #121212, #0A0A0A, #121212); /* Very dark, subtle gradient */
+            font-family: 'Inter', sans-serif; /* Professional sans-serif for general text */
+            color: #E0E0E0; /* Light grey for main text */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        /* Accent color for key digits and text - mimicking segmented BLUE LEDs with a refined glow */
+        .digital-blue-text {
+            color: #00E0E0; /* Electric blue */
+            text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4); /* Stronger but ethereal glow */
+        }
+        /* Accent color for buttons and interactive elements */
+        .accent-button {
+            background-color: #00BFFF; /* Deep Sky Blue for action */
+            color: #1a1a1a; /* Dark text on button */
+            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.4); /* Soft shadow for depth */
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .accent-button:hover {
+            background-color: #00A3D9; /* Slightly darker blue on hover */
+            box-shadow: 0 6px 20px rgba(0, 191, 255, 0.6);
+        }
+        /* Styling for the main clock display container */
+        .clock-display-container {
+            background-color: #090909; /* Pure black background for the display panel */
+            border: 2px solid #689da1; /* Darker, subtle border for enclosure */
+            border-radius: 10px; /* Slightly more rounded corners for the panel */
+            padding: 2.5rem 3.5rem; /* More generous padding for larger feel */
+            box-shadow: 0 0 40px rgba(114, 167, 177, 0.8); /* Stronger, deeper shadow for depth */
+            margin-bottom: 3rem; /* Space below the clock */
+            width: 90%;
+            max-width: 550px; /* Increased max width for a more substantial look */
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            /* Mimic the reflective surface with a subtle gradient */
+            background: radial-gradient(circle at center, #2e3131 0%, #191a1a 100%);
+        }
+        /* Style for the main clock digits */
+        #timeDisplay {
+            font-family: 'Orbitron', sans-serif; /* Orbitron for clock digits */
+            font-size: 6.5rem; /* Even larger font size for prominent time */
+            line-height: 1; /* Adjust line height for centering */
+            letter-spacing: -0.06em; /* Slightly tighter letter spacing for a dense digital look */
+            margin-bottom: 1.2rem; /* Space between time and day indicators */
+        }
+        /* Style for date (DD MM YY) */
+        #dateDisplay {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem; /* Slightly larger date font */
+            line-height: 1.2;
+            letter-spacing: -0.05em;
+            margin-bottom: 1.2rem; /* Space between date and time */
+        }
+        /* Sub-labels for DATE, MONTH, YEAR, HOUR, MINUTE, SECOND */
+        .time-labels {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem; /* Smaller, precise labels */
+            color: #8f9193; /* Softer grey */
+            text-transform: uppercase;
+            letter-spacing: 0.1em; /* More spaced out letters */
+            margin-bottom: 0.5rem; /* Closer to the numbers */
+        }
+
+        /* Day indicators styling */
+        .day-indicator-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem; /* Increased spacing between circles */
+            margin-top: 0.8rem;
+            margin-bottom: 2.5rem; /* More space below */
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        .day-indicator-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.85rem; /* Slightly larger text for day labels */
+            font-family: 'Inter', sans-serif;
+            color: #7c7878; /* Dim text for inactive days */
+            position: relative;
+        }
+        .day-circle {
+            width: 20px; /* Slightly larger circles */
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #858788; /* Darker border for inactive */
+            margin-bottom: 5px;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .day-indicator-item.active .day-circle {
+            background-color: #00E0E0; /* Electric blue circle for active day */
+            border-color: #00E0E0;
+            box-shadow: 0 0 10px rgba(0, 224, 224, 0.7); /* Ethereal glow for active */
+        }
+        .day-indicator-item.active {
+            color: #00E0E0; /* Active day text color */
+        }
+
+        /* AM/PM indicators styling */
+        .ampm-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            right: 2.5rem; /* Adjusted right position */
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        .ampm-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 0.7rem; /* More space between AM and PM */
+            font-size: 0.9rem; /* Slightly larger AM/PM text */
+            font-family: 'Inter', sans-serif;
+            color: #727576;
+        }
+        .ampm-circle {
+            width: 16px; /* Slightly larger circles */
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid #858788;
+            margin-bottom: 3px;
+            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .ampm-item.active .ampm-circle {
+            background-color: #00E0E0; /* Electric blue for active */
+            border-color: #00E0E0;
+            box-shadow: 0 0 8px rgba(0, 224, 224, 0.6);
+        }
+        .ampm-item.active {
+            color: #00E0E0;
+        }
+
+        /* Input field styling */
+        .input-field {
+            background-color: #161d2e; /* Darker background for inputs */
+            color: #E0E0E0;
+            border: 1px solid #6fb4cb; /* Softer border */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #00BFFF; /* Blue focus border */
+            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.3); /* Blue focus ring */
+            outline: none; /* Remove default outline */
+        }
+
+        /* Custom styles for toggle switch - adapted for new theme */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px; /* Slightly wider */
+            height: 24px; /* Slightly taller */
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #848686; /* Darker grey for off state */
+            transition: .4s;
+            border-radius: 24px; /* Fully rounded */
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; /* Slightly larger thumb */
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #00BFFF; /* Blue for on state */
+        }
+        input:focus + .slider {
+            box-shadow: 0 0 1px #00BFFF;
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Modal styles - adapted for new theme */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(130, 135, 139, 0.9); /* Even darker overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px); /* Subtle blur for professionalism */
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #4d5151, #676969); /* Deeper background gradient */
+            padding: 35px; /* More padding */
+            border-radius: 12px; /* Slightly more rounded */
+            border: 1px solid rgba(0, 191, 255, 0.6); /* Blue accent border, more prominent */
+            width: 90%;
+            max-width: 480px; /* Slightly wider modal */
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0, 191, 255, 0.5); /* Stronger blue glow */
+            color: #E0E0E0;
+            position: relative; /* Needed for error message positioning */
+        }
+        .modal-content button {
+            margin: 10px;
+            padding: 12px 30px; /* Larger buttons */
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.05rem; /* Slightly larger font */
+            transition: background-color 0.3s, box-shadow 0.3s;
+            border: none;
+        }
+        .modal-content button.snooze {
+            background-color: #FF69B4; /* Hot pink for snooze - a distinct action */
+            color: white;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+        }
+        .modal-content button.snooze:hover {
+            background-color: #FF40A0;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
+        }
+        .modal-content button.stop {
+            background-color: #00BFFF; /* Blue for stop */
+            color: white;
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
+        }
+        .modal-content button.stop:hover {
+            background-color: #00A3D9;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.7);
+        }
+        .modal-error-message {
+            color: #FF69B4; /* Pink for errors, stands out */
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            height: 1.2em; /* Reserve space to prevent layout shift */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-error-message.show {
+            opacity: 1;
+        }
+
+        /* Header styles */
+        #headerContainer { /* Renamed from headerClockContainer as it's no longer just a clock */
+            width: 100%;
+            text-align: center;
+            padding: 1rem 0;
+            margin-bottom: 2rem; /* Space between header and main content */
+            background-color: #0A0A0A; /* Slightly different background for header */
+            border-bottom: 1px solid rgba(0, 224, 224, 0.2); /* Subtle divider */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #headerTitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3rem; /* Larger font size for the main title */
+            font-weight: 600;
+            color: #00E0E0;
+            text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4);
+        }
+
+        /* Styles for "DIGITAL" and "CLOCK" side containers */
+        .side-text-container {
+            display: flex;
+            flex-direction: column; /* Always stack vertically */
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0; /* Prevent shrinking */
+            min-width: 120px; /* Minimum width for the text containers */
+            font-family: 'Orbitron', sans-serif; /* Digital font */
+            font-weight: 500;
+            color: #00E0E0; /* Digital blue text */
+            text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4);
+            margin: 0 2rem; /* Spacing between side containers and clock */
+            text-align: center;
+            line-height: 1; /* Adjust line height for balanced vertical spacing */
+            font-size: 3rem; /* Default large font size */
+        }
+        .side-text-container span {
+            display: block; /* Always make each letter a block to stack vertically */
+        }
+        
+        /* Main content wrapper to align side containers and clock horizontally */
+        .main-content-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 20px; /* Add some padding to the main wrapper */
+            box-sizing: border-box; /* Include padding in width */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .main-content-wrapper {
+                flex-direction: column; /* Stack vertically on smaller screens */
+            }
+            .side-text-container {
+                margin: 1.5rem 0; /* Adjust margin for vertical stacking */
+                font-size: 2.5rem; /* Slightly smaller font for mobile */
+            }
+            #headerTitle {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .clock-display-container {
+                padding: 1.5rem 1rem;
+                max-width: 95%;
+            }
+            #dateDisplay {
+                font-size: 1.8rem;
+            }
+            #timeDisplay {
+                font-size: 4rem;
+            }
+            .day-indicator-wrapper {
+                gap: 0.8rem;
+                margin-bottom: 1.5rem;
+            }
+            .day-indicator-item {
+                font-size: 0.7rem;
+            }
+            .day-circle {
+                width: 14px;
+                height: 14px;
+            }
+            .ampm-wrapper {
+                right: 0.5rem;
+                margin-left: 0.5rem;
+                top: auto; /* Reset top positioning for better mobile flow */
+                bottom: 1.5rem; /* Position at the bottom right */
+                transform: none; /* Reset transform */
+            }
+            .modal-content {
+                padding: 25px;
+            }
+            .modal-content button {
+                padding: 10px 20px;
+                font-size: 0.95rem;
+            }
+            .side-text-container {
+                font-size: 1.8rem; /* Further reduce font size on very small screens for better fit */
+                line-height: 0.9; /* Adjust line height for a tighter look when smaller */
+            }
+            #headerTitle {
+                font-size: 2rem; /* Further adjust header size for very small screens */
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Header Container -->
+    <div id="headerContainer">
+        <div id="headerTitle" class="digital-blue-text">WELLCOME</div>
+    </div>
+
+    <!-- Main content wrapper to align side containers and clock horizontally -->
+    <div class="main-content-wrapper">
+        <!-- Left Side Container: DIGITAL -->
+        <div class="side-text-container">
+            <span>D</span>
+            <span>I</span>
+            <span>G</span>
+            <span>I</span>
+            <span>T</span>
+            <span>A</span>
+            <span>L</span>
+        </div>
+
+        <!-- Main Digital Wall Clock Display -->
+        <div class="clock-display-container relative">
+            <!-- Date Display: DD MM YY -->
+            <div class="time-labels">DATE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MONTH &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; YEAR</div>
+            <div id="dateDisplay" class="digital-blue-text">01 01 23</div>
+
+            <!-- Main Time Display: HH:MM:SS -->
+            <div class="time-labels mt-4">HOUR &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MINUTE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SECOND</div>
+            <div id="timeDisplay" class="digital-blue-text">11:33:25</div>
+
+            <div class="flex justify-between items-end w-full relative">
+                <!-- Day of Week Indicators -->
+                <div class="day-indicator-wrapper">
+                    <div class="day-indicator-item" id="day-sun">
+                        <div class="day-circle"></div>
+                        <span>SUN</span>
+                    </div>
+                    <div class="day-indicator-item" id="day-mon">
+                        <div class="day-circle"></div>
+                        <span>MON</span>
+                    </div>
+                    <div class="day-indicator-item" id="day-tue">
+                        <div class="day-circle"></div>
+                        <span>TUE</span>
+                    </div>
+                    <div class="day-indicator-item" id="day-wed">
+                        <div class="day-circle"></div>
+                        <span>WED</span>
+                    </div>
+                    <div class="day-indicator-item" id="day-thu">
+                        <div class="day-circle"></div>
+                        <span>THU</span>
+                    </div>
+                    <div class="day-indicator-item" id="day-fri">
+                        <div class="day-circle"></div>
+                        <span>FRI</span>
+                    </div>
+                    <div class="day-indicator-item" id="day-sat">
+                        <div class="day-circle"></div>
+                        <span>SAT</span>
+                    </div>
+                </div>
+
+                <!-- AM/PM Indicators -->
+                <div class="ampm-wrapper">
+                    <div class="ampm-item" id="ampm-am">
+                        <div class="ampm-circle"></div>
+                        <span>AM</span>
+                    </div>
+                    <div class="ampm-item" id="ampm-pm">
+                        <div class="ampm-circle"></div>
+                        <span>PM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side Container: CLOCK -->
+        <div class="side-text-container">
+            <span>C</span>
+            <span>L</span>
+            <span>O</span>
+            <span>C</span>
+            <span>K</span>
+        </div>
+    </div>
+
+    <!-- Set Alarm Section -->
+    <div class="w-full max-w-md bg-gray-900 bg-opacity-70 p-6 rounded-xl shadow-lg mb-6 border border-gray-700">
+        <h2 class="text-2xl mb-4 digital-blue-text">Set Alarm</h2>
+        <form id="alarmForm" class="space-y-4">
+            <input type="time" id="alarmTime" class="w-full p-3 rounded-md input-field" required>
+            <input type="text" id="alarmLabel" placeholder="Label (e.g. Wake Up)" class="w-full p-3 rounded-md input-field">
+            <button type="submit" class="w-full p-3 rounded-md accent-button">Add Alarm</button>
+        </form>
+    </div>
+
+    <!-- Upcoming Alarms Section -->
+    <div class="w-full max-w-md bg-gray-900 bg-opacity-70 p-4 rounded-xl shadow-lg border border-gray-700">
+        <h3 class="text-xl mb-3 digital-blue-text">Upcoming Alarms</h3>
+        <ul id="alarmList" class="space-y-3"></ul>
+    </div>
+
+    <!-- Hidden audio element for alarm sound -->
+    <audio id="alarmSound">
+        <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Custom Alarm Modal -->
+    <div id="alarmModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalAlarmLabel" class="text-3xl digital-blue-text mb-4">Alarm!</h2>
+            <p id="modalAlarmTime" class="text-xl mb-6">00:00</p>
+            <div class="flex flex-col sm:flex-row justify-center items-center">
+                <button class="snooze" onclick="snoozeCurrentAlarm()">Snooze</button>
+                <button class="stop" onclick="stopAlarmAndCloseModal()">Stop</button>
+            </div>
+            <input type="number" id="snoozeDurationInput" placeholder="Snooze (min)" value="5" min="1" class="mt-4 p-2 rounded-md input-field text-center w-32">
+            <div id="snoozeErrorMessage" class="modal-error-message"></div>
+        </div>
+    </div>
+
+    <!-- Footer with copyright -->
+    <footer class="mt-8 text-center text-gray-500 text-sm">
+        &copy; 2025 Digital Clock. All rights reserved.
+    </footer>
+
+    <script>
+        // --- DOM Element References ---
+        const timeDisplay = document.getElementById('timeDisplay');
+        const dateDisplay = document.getElementById('dateDisplay');
+        // Removed headerTimeDisplay reference
+        const dayIndicators = {
+            sun: document.getElementById('day-sun'),
+            mon: document.getElementById('day-mon'),
+            tue: document.getElementById('day-tue'),
+            wed: document.getElementById('day-wed'),
+            thu: document.getElementById('day-thu'),
+            fri: document.getElementById('day-fri'),
+            sat: document.getElementById('day-sat'),
+        };
+        const ampmIndicators = {
+            am: document.getElementById('ampm-am'),
+            pm: document.getElementById('ampm-pm'),
+        };
+
+        const alarmForm = document.getElementById('alarmForm');
+        const alarmSound = document.getElementById('alarmSound');
+        const alarmList = document.getElementById('alarmList');
+        const alarmModal = document.getElementById('alarmModal');
+        const modalAlarmLabel = document.getElementById('modalAlarmLabel');
+        const modalAlarmTime = document.getElementById('modalAlarmTime');
+        const snoozeDurationInput = document.getElementById('snoozeDurationInput');
+        const snoozeErrorMessage = document.getElementById('snoozeErrorMessage');
+
+        // --- Global State ---
+        // Array to store alarms, initialized from local storage
+        // Each alarm object: { id: unique string, time: "HH:MM", label: "...", triggered: false, enabled: true }
+        let alarms = JSON.parse(localStorage.getItem('alarms')) || [];
+        let ringingAlarmIndex = -1; // To keep track of which alarm is currently ringing
+
+        // To prevent re-triggering within the same minute after stop/snooze
+        let lastMinuteChecked = -1;
+
+        // Arrays for day and month names (for display, matching image style)
+        const daysShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        const monthsNumeric = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+
+        // --- Utility Functions ---
+
+        /**
+         * Generates a simple unique ID for alarms.
+         * @returns {string} A unique ID.
+         */
+        function generateUniqueId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        /**
+         * Saves the current alarms array to local storage.
+         * This function should be called every time the 'alarms' array is modified.
+         */
+        function saveAlarms() {
+            localStorage.setItem('alarms', JSON.stringify(alarms));
+        }
+
+        /**
+         * Displays a temporary error message in the alarm modal.
+         * @param {string} message - The error message to display.
+         */
+        function showModalError(message) {
+            snoozeErrorMessage.textContent = message;
+            snoozeErrorMessage.classList.add('show');
+            setTimeout(() => {
+                snoozeErrorMessage.classList.remove('show');
+            }, 3000); // Hide after 3 seconds
+        }
+
+        // --- Clock and Alarm Logic ---
+
+        /**
+         * Updates the digital clock display, date, day indicators, and AM/PM.
+         * Also checks for triggered alarms and manages their state.
+         */
+        function updateClock() {
+            const now = new Date();
+            const currentMinute = now.getMinutes();
+
+            // Reset 'triggered' flags for all alarms when the minute changes.
+            // This allows alarms to ring again if their time matches in a new minute,
+            // but prevents immediate re-triggering within the same minute if stopped.
+            if (currentMinute !== lastMinuteChecked) {
+                alarms.forEach(alarm => {
+                    alarm.triggered = false;
+                });
+                lastMinuteChecked = currentMinute;
+                // No need to save here unless alarms array state genuinely changes.
+                // saveAlarms(); // Only uncomment if you notice state issues that need saving every minute.
+            }
+
+            // Update time display (HH:MM:SS in 12-hour format)
+            const hours24 = now.getHours();
+            const hours12 = String(hours24 % 12 || 12).padStart(2, '0'); // Convert 0-23 to 1-12
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            timeDisplay.textContent = `${hours12}:${minutes}:${seconds}`;
+
+            // Update date display (DD MM YY)
+            const date = String(now.getDate()).padStart(2, '0');
+            const month = monthsNumeric[now.getMonth()];
+            const year = String(now.getFullYear()).slice(-2); // Get last two digits of the year
+            dateDisplay.textContent = `${date} ${month} ${year}`;
+
+            // Update day of week indicator (highlight current day)
+            const currentDayIndex = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
+            Object.values(dayIndicators).forEach((el, index) => {
+                if (index === currentDayIndex) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+
+            // Update AM/PM indicator (highlight current period)
+            const isAm = hours24 < 12;
+            ampmIndicators.am.classList.toggle('active', isAm);
+            ampmIndicators.pm.classList.toggle('active', !isAm);
+
+            // Get current time in 24-hour HH:MM format for alarm comparison
+            const currentTime24 = `${String(hours24).padStart(2, '0')}:${minutes}`;
+
+            // Iterate over alarms to check if any should trigger
+            alarms.forEach((alarm, index) => {
+                // Check if alarm is enabled, NOT already triggered for this minute, and time matches current time
+                if (alarm.enabled && !alarm.triggered && alarm.time === currentTime24) {
+                    alarm.triggered = true; // Mark as triggered for this minute
+                    ringingAlarmIndex = index; // Store the index of the ringing alarm
+                    showAlarmModal(alarm.label || 'Alarm!', alarm.time); // Show the custom modal
+                    alarmSound.play(); // Play the alarm sound
+                    saveAlarms(); // Save the updated triggered state to local storage
+                }
+            });
+        }
+
+        /**
+         * Displays the custom alarm modal with alarm details.
+         * @param {string} label - The label for the alarm.
+         * @param {string} time24hr - The time of the alarm in 24-hour HH:MM format.
+         */
+        function showAlarmModal(label, time24hr) {
+            modalAlarmLabel.textContent = label;
+            // Convert 24-hour time to 12-hour format for modal display
+            const [hours24, minutes] = time24hr.split(':').map(Number);
+            const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
+            const ampm = hours24 < 12 ? 'AM' : 'PM';
+            modalAlarmTime.textContent = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+            alarmModal.classList.remove('hidden'); // Show the modal
+            snoozeErrorMessage.classList.remove('show'); // Hide any previous error message when showing modal
+        }
+
+        /**
+         * Stops the alarm sound and closes the custom modal.
+         */
+        function stopAlarmAndCloseModal() {
+            alarmSound.pause();
+            alarmSound.currentTime = 0; // Rewind to the beginning
+            alarmModal.classList.add('hidden'); // Hide the modal
+
+            // Reset triggered state for the currently ringing alarm
+            if (ringingAlarmIndex !== -1) {
+                // Keep 'triggered' as true for the current minute to prevent immediate re-ringing.
+                // It will be reset to false by `updateClock` when the minute changes.
+                // alarms[ringingAlarmIndex].triggered = false; // <-- This line is removed/commented out
+                ringingAlarmIndex = -1; // Reset ringing alarm index
+                saveAlarms(); // Save the updated triggered state (if any other properties changed, though not here)
+            }
+            renderAlarms(); // Re-render to ensure UI reflects latest alarm states
+        }
+
+        /**
+         * Snoozes the currently ringing alarm for a user-specified duration.
+         */
+        function snoozeCurrentAlarm() {
+            const snoozeMinutes = parseInt(snoozeDurationInput.value);
+            if (isNaN(snoozeMinutes) || snoozeMinutes <= 0) {
+                showModalError('Please enter a valid snooze duration (minutes > 0).');
+                return;
+            }
+
+            if (ringingAlarmIndex !== -1) {
+                const alarm = alarms[ringingAlarmIndex];
+                const [hour, minute] = alarm.time.split(':').map(Number); // Use 24-hour for internal calculation
+                const snoozeDate = new Date();
+                snoozeDate.setHours(hour);
+                snoozeDate.setMinutes(minute + snoozeMinutes);
+                snoozeDate.setSeconds(0); // Ensure snooze starts from 0 seconds
+
+                const newHour = String(snoozeDate.getHours()).padStart(2, '0');
+                const newMinute = String(snoozeDate.getMinutes()).padStart(2, '0');
+
+                alarm.time = `${newHour}:${newMinute}`; // Store new snooze time in 24-hour format
+                // Append (Snoozed) to label if not already there
+                if (!alarm.label.includes('(Snoozed)')) {
+                    alarm.label += ' (Snoozed)';
+                }
+                alarm.triggered = false; // Reset triggered state so it can ring again AFTER snooze time is reached
+                alarm.enabled = true; // Ensure it's enabled after snooze
+                saveAlarms(); // Save changes to local storage
+            }
+
+            stopAlarmAndCloseModal(); // Stop sound and close modal
+        }
+
+        /**
+         * Renders the list of alarms in the UI.
+         * This function rebuilds the alarm list dynamically based on the 'alarms' array.
+         */
+        function renderAlarms() {
+            alarmList.innerHTML = ''; // Clear existing list to prevent duplicates
+            alarms.forEach((alarm, index) => {
+                const li = document.createElement('li');
+                li.className = `flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-900 bg-opacity-70 p-3 rounded-md mb-3 border border-gray-700 transition-all duration-300 ease-in-out ${alarm.enabled ? '' : 'opacity-50 line-through'}`;
+
+                // Convert stored 24-hour time to 12-hour format for display in the list
+                const [hours24, minutes] = alarm.time.split(':').map(Number);
+                const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
+                const ampm = hours24 < 12 ? 'AM' : 'PM';
+                const displayTime = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+
+                li.innerHTML = `
+                    <div class="flex-grow">
+                        <span class="text-lg">${displayTime} - ${alarm.label || 'No Label'}</span>
+                    </div>
+                    <div class="flex items-center space-x-3 mt-2 sm:mt-0">
+                        <label class="toggle-switch" aria-label="Toggle alarm ${alarm.label || displayTime}">
+                            <input type="checkbox" ${alarm.enabled ? 'checked' : ''} onchange="toggleAlarm(${index})">
+                            <span class="slider"></span>
+                        </label>
+                        <button onclick="editAlarm(${index})" class="text-yellow-400 hover:text-yellow-300 text-sm p-1 rounded transition-colors duration-200">Edit</button>
+                        <button onclick="deleteAlarm(${index})" class="text-red-400 hover:text-red-300 text-sm p-1 rounded transition-colors duration-200">Delete</button>
+                    </div>
+                `;
+                alarmList.appendChild(li);
+            });
+        }
+
+        /**
+         * Deletes an alarm from the list.
+         * @param {number} index - The index of the alarm to delete.
+         */
+        function deleteAlarm(index) {
+            alarms.splice(index, 1); // Remove alarm from array
+            saveAlarms(); // Save changes to local storage
+            renderAlarms(); // Re-render list to reflect deletion
+        }
+
+        /**
+         * Edits an existing alarm's time and label using the custom modal.
+         * @param {number} index - The index of the alarm to edit.
+         */
+        function editAlarm(index) {
+            const alarmToEdit = alarms[index];
+            // Store current alarm details in modal for editing
+            modalAlarmLabel.textContent = 'Edit Alarm';
+            // Set input field value to current alarm time (24hr format as it's an input type="time")
+            document.getElementById('alarmTime').value = alarmToEdit.time;
+            document.getElementById('alarmLabel').value = alarmToEdit.label.replace(' (Snoozed)', ''); // Remove snooze label for editing
+
+            // Temporarily change the form submission listener for editing
+            alarmForm.onsubmit = function(e) {
+                e.preventDefault();
+                const newTime = document.getElementById('alarmTime').value;
+                let newLabel = document.getElementById('alarmLabel').value;
+
+                if (!newTime) {
+                    // Show a temporary message in the alarm list area or a console warning
+                    console.warn('Alarm time is required for editing.');
+                    return;
+                }
+                // Basic time format validation (HH:MM)
+                if (!/^\d{2}:\d{2}$/.test(newTime)) {
+                    console.warn('Invalid time format. Please use HH:MM (24-hour format).');
+                    return;
+                }
+
+                alarms[index] = {
+                    time: newTime,
+                    label: newLabel,
+                    triggered: false, // Reset triggered status on edit
+                    enabled: alarmToEdit.enabled // Retain original enabled status
+                };
+                saveAlarms();
+                renderAlarms();
+                alarmForm.reset(); // Clear form fields
+                // Revert form submission listener to default "add alarm"
+                alarmForm.onsubmit = addAlarmHandler;
+
+                // Show a temporary confirmation using the alarm modal for consistency
+                const [hours24, minutes] = newTime.split(':').map(Number);
+                const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
+                const ampm = hours24 < 12 ? 'AM' : 'PM';
+                const displayTime = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+                showAlarmModal('Alarm Updated!', `New time: ${displayTime}${newLabel ? ' - ' + newLabel : ''}`);
+                alarmSound.pause(); // Ensure sound is stopped if it was accidentally playing for this modal
+                alarmSound.currentTime = 0;
+                setTimeout(() => { alarmModal.classList.add('hidden'); }, 2000);
+            };
+
+            // You might want to scroll to the form or make it prominent when edit is clicked
+            // document.getElementById('alarmForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * Toggles the enabled state of an alarm.
+         * @param {number} index - The index of the alarm to toggle.
+         */
+        function toggleAlarm(index) {
+            alarms[index].enabled = !alarms[index].enabled;
+            // When toggling, reset triggered state regardless, as it's a manual intervention
+            alarms[index].triggered = false;
+            saveAlarms(); // Save changes to local storage
+            renderAlarms(); // Re-render to update UI
+        }
+
+        /**
+         * Handles the form submission for adding new alarms.
+         * This is the default behavior.
+         */
+        function addAlarmHandler(e) {
+            e.preventDefault(); // Prevent default form submission
+            const time = document.getElementById('alarmTime').value; // This is already in 24hr HH:MM
+            const label = document.getElementById('alarmLabel').value;
+
+            // Basic validation for time input from form
+            if (!time) {
+                // Using console.error here. For a truly professional app, a small message near the input would be better.
+                console.error('Alarm time is required.');
+                return;
+            }
+
+            // Add new alarm with enabled: true by default and a unique ID
+            alarms.push({ id: generateUniqueId(), time, label, triggered: false, enabled: true });
+            alarmForm.reset(); // Clear form fields
+            saveAlarms(); // Save new alarm to local storage
+            renderAlarms(); // Re-render list to show new alarm
+
+            // Show a temporary confirmation message using the modal
+            // Convert time to 12-hour format for confirmation modal display
+            const [hours24, minutes] = time.split(':').map(Number);
+            const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
+            const ampm = hours24 < 12 ? 'AM' : 'PM';
+            const displayTime = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+
+            showAlarmModal('Alarm Set!', `For ${displayTime}${label ? ' - ' + label : ''}`);
+            alarmSound.pause(); // Ensure sound is stopped if it was accidentally playing for this modal
+            alarmSound.currentTime = 0;
+            // Hide the modal after a short delay for confirmation message
+            setTimeout(() => {
+                alarmModal.classList.add('hidden');
+            }, 2000);
+        }
+
+        // --- Event Listeners and Initialization ---
+
+        // Set the default form submission listener
+        alarmForm.addEventListener('submit', addAlarmHandler);
+
+        // Initialize clock update interval to run every second
+        setInterval(updateClock, 1000);
+
+        // Initial calls to set up the clock and render existing alarms on page load
+        updateClock();
+        renderAlarms();
+    </script>
+</body>
+</html>
