@@ -3,844 +3,679 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Digital Clock</title>
+    <title>Brain Blitz - A Fun Quiz Game</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Orbitron for digital display, Inter for other text -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- Tone.js for simple audio feedback -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <style>
-        /* Body background for a clean, professional look */
+        /* Apply 'Inter' font to the body */
         body {
-            background: linear-gradient(135deg, #121212, #0A0A0A, #121212); /* Very dark, subtle gradient */
-            font-family: 'Inter', sans-serif; /* Professional sans-serif for general text */
-            color: #E0E0E0; /* Light grey for main text */
-            overflow-x: hidden; /* Prevent horizontal scroll */
-        }
-        /* Accent color for key digits and text - mimicking segmented BLUE LEDs with a refined glow */
-        .digital-blue-text {
-            color: #00E0E0; /* Electric blue */
-            text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4); /* Stronger but ethereal glow */
-        }
-        /* Accent color for buttons and interactive elements */
-        .accent-button {
-            background-color: #00BFFF; /* Deep Sky Blue for action */
-            color: #1a1a1a; /* Dark text on button */
-            box-shadow: 0 4px 15px rgba(0, 191, 255, 0.4); /* Soft shadow for depth */
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .accent-button:hover {
-            background-color: #00A3D9; /* Slightly darker blue on hover */
-            box-shadow: 0 6px 20px rgba(0, 191, 255, 0.6);
-        }
-        /* Styling for the main clock display container */
-        .clock-display-container {
-            background-color: #090909; /* Pure black background for the display panel */
-            border: 2px solid #689da1; /* Darker, subtle border for enclosure */
-            border-radius: 10px; /* Slightly more rounded corners for the panel */
-            padding: 2.5rem 3.5rem; /* More generous padding for larger feel */
-            box-shadow: 0 0 40px rgba(114, 167, 177, 0.8); /* Stronger, deeper shadow for depth */
-            margin-bottom: 3rem; /* Space below the clock */
-            width: 90%;
-            max-width: 550px; /* Increased max width for a more substantial look */
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            /* Mimic the reflective surface with a subtle gradient */
-            background: radial-gradient(circle at center, #2e3131 0%, #191a1a 100%);
-        }
-        /* Style for the main clock digits */
-        #timeDisplay {
-            font-family: 'Orbitron', sans-serif; /* Orbitron for clock digits */
-            font-size: 6.5rem; /* Even larger font size for prominent time */
-            line-height: 1; /* Adjust line height for centering */
-            letter-spacing: -0.06em; /* Slightly tighter letter spacing for a dense digital look */
-            margin-bottom: 1.2rem; /* Space between time and day indicators */
-        }
-        /* Style for date (DD MM YY) */
-        #dateDisplay {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2.8rem; /* Slightly larger date font */
-            line-height: 1.2;
-            letter-spacing: -0.05em;
-            margin-bottom: 1.2rem; /* Space between date and time */
-        }
-        /* Sub-labels for DATE, MONTH, YEAR, HOUR, MINUTE, SECOND */
-        .time-labels {
             font-family: 'Inter', sans-serif;
-            font-size: 0.75rem; /* Smaller, precise labels */
-            color: #8f9193; /* Softer grey */
-            text-transform: uppercase;
-            letter-spacing: 0.1em; /* More spaced out letters */
-            margin-bottom: 0.5rem; /* Closer to the numbers */
+        }
+        /* Custom animation for card shake on wrong answer */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
         }
 
-        /* Day indicators styling */
-        .day-indicator-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1.5rem; /* Increased spacing between circles */
-            margin-top: 0.8rem;
-            margin-bottom: 2.5rem; /* More space below */
-            flex-wrap: wrap; /* Allow wrapping on small screens */
+        /* Custom animation for score counting up */
+        @keyframes count-up {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
         }
-        .day-indicator-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.85rem; /* Slightly larger text for day labels */
-            font-family: 'Inter', sans-serif;
-            color: #7c7878; /* Dim text for inactive days */
-            position: relative;
-        }
-        .day-circle {
-            width: 20px; /* Slightly larger circles */
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid #858788; /* Darker border for inactive */
-            margin-bottom: 5px;
-            box-sizing: border-box;
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .day-indicator-item.active .day-circle {
-            background-color: #00E0E0; /* Electric blue circle for active day */
-            border-color: #00E0E0;
-            box-shadow: 0 0 10px rgba(0, 224, 224, 0.7); /* Ethereal glow for active */
-        }
-        .day-indicator-item.active {
-            color: #00E0E0; /* Active day text color */
+        .count-up {
+            animation: count-up 0.2s ease-out;
         }
 
-        /* AM/PM indicators styling */
-        .ampm-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* Custom styles for the timer bar, ensuring smooth width transition */
+        #timer-bar {
+            transition: width 0.1s linear; /* Default transition, overridden for full duration in JS */
+        }
+        
+        /* Custom styles for confetti particles */
+        .confetti {
+            width: 10px;
+            height: 10px;
             position: absolute;
-            right: 2.5rem; /* Adjusted right position */
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 1;
+            top: -20px; /* Start above the container */
+            animation: fall 3s linear infinite; /* Animation for falling effect */
+            border-radius: 50%; /* Make confetti round */
         }
-        .ampm-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 0.7rem; /* More space between AM and PM */
-            font-size: 0.9rem; /* Slightly larger AM/PM text */
-            font-family: 'Inter', sans-serif;
-            color: #727576;
-        }
-        .ampm-circle {
-            width: 16px; /* Slightly larger circles */
-            height: 16px;
-            border-radius: 50%;
-            border: 1px solid #858788;
-            margin-bottom: 3px;
-            transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .ampm-item.active .ampm-circle {
-            background-color: #00E0E0; /* Electric blue for active */
-            border-color: #00E0E0;
-            box-shadow: 0 0 8px rgba(0, 224, 224, 0.6);
-        }
-        .ampm-item.active {
-            color: #00E0E0;
-        }
-
-        /* Input field styling */
-        .input-field {
-            background-color: #161d2e; /* Darker background for inputs */
-            color: #E0E0E0;
-            border: 1px solid #6fb4cb; /* Softer border */
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .input-field:focus {
-            border-color: #00BFFF; /* Blue focus border */
-            box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.3); /* Blue focus ring */
-            outline: none; /* Remove default outline */
-        }
-
-        /* Custom styles for toggle switch - adapted for new theme */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px; /* Slightly wider */
-            height: 24px; /* Slightly taller */
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #848686; /* Darker grey for off state */
-            transition: .4s;
-            border-radius: 24px; /* Fully rounded */
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 20px; /* Slightly larger thumb */
-            width: 20px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #00BFFF; /* Blue for on state */
-        }
-        input:focus + .slider {
-            box-shadow: 0 0 1px #00BFFF;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Modal styles - adapted for new theme */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 100; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(130, 135, 139, 0.9); /* Even darker overlay */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px); /* Subtle blur for professionalism */
-        }
-        .modal-content {
-            background: linear-gradient(135deg, #4d5151, #676969); /* Deeper background gradient */
-            padding: 35px; /* More padding */
-            border-radius: 12px; /* Slightly more rounded */
-            border: 1px solid rgba(0, 191, 255, 0.6); /* Blue accent border, more prominent */
-            width: 90%;
-            max-width: 480px; /* Slightly wider modal */
-            text-align: center;
-            box-shadow: 0 0 30px rgba(0, 191, 255, 0.5); /* Stronger blue glow */
-            color: #E0E0E0;
-            position: relative; /* Needed for error message positioning */
-        }
-        .modal-content button {
-            margin: 10px;
-            padding: 12px 30px; /* Larger buttons */
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'Inter', sans-serif;
-            font-size: 1.05rem; /* Slightly larger font */
-            transition: background-color 0.3s, box-shadow 0.3s;
-            border: none;
-        }
-        .modal-content button.snooze {
-            background-color: #FF69B4; /* Hot pink for snooze - a distinct action */
-            color: white;
-            box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
-        }
-        .modal-content button.snooze:hover {
-            background-color: #FF40A0;
-            box-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
-        }
-        .modal-content button.stop {
-            background-color: #00BFFF; /* Blue for stop */
-            color: white;
-            box-shadow: 0 0 10px rgba(0, 191, 255, 0.5);
-        }
-        .modal-content button.stop:hover {
-            background-color: #00A3D9;
-            box-shadow: 0 0 15px rgba(0, 191, 255, 0.7);
-        }
-        .modal-error-message {
-            color: #FF69B4; /* Pink for errors, stands out */
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            height: 1.2em; /* Reserve space to prevent layout shift */
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .modal-error-message.show {
-            opacity: 1;
-        }
-
-        /* Header styles */
-        #headerContainer {
-            width: 100%;
-            text-align: center;
-            padding: 1rem 0;
-            margin-bottom: 2rem; /* Space between header and main content */
-            background-color: #0A0A0A; /* Slightly different background for header */
-            border-bottom: 1px solid rgba(0, 224, 224, 0.2); /* Subtle divider */
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-        }
-
-        #headerTitle {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 3rem; /* Larger font size for the main title */
-            font-weight: 600;
-            color: #00E0E0;
-            text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4);
-        }
-
-        /* Main content wrapper to align main clock display centrally */
-        .main-content-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center; /* Center the clock display */
-            width: 100%;
-            padding: 20px; /* Add some padding to the main wrapper */
-            box-sizing: border-box; /* Include padding in width */
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 900px) {
-            .main-content-wrapper {
-                flex-direction: column; /* Stacks the clock vertically if other elements were present */
-            }
-            #headerTitle {
-                font-size: 2.5rem;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .clock-display-container {
-                padding: 1.5rem 1rem;
-                max-width: 95%;
-            }
-            #dateDisplay {
-                font-size: 1.8rem;
-            }
-            #timeDisplay {
-                font-size: 4rem;
-            }
-            .day-indicator-wrapper {
-                gap: 0.8rem;
-                margin-bottom: 1.5rem;
-            }
-            .day-indicator-item {
-                font-size: 0.7rem;
-            }
-            .day-circle {
-                width: 14px;
-                height: 14px;
-            }
-            .ampm-wrapper {
-                right: 0.5rem;
-                margin-left: 0.5rem;
-                top: auto; /* Reset top positioning for better mobile flow */
-                bottom: 1.5rem; /* Position at the bottom right */
-                transform: none; /* Reset transform */
-            }
-            .modal-content {
-                padding: 25px;
-            }
-            .modal-content button {
-                padding: 10px 20px;
-                font-size: 0.95rem;
-            }
-            #headerTitle {
-                font-size: 2rem;
-            }
-        }
-
-        /* Further adjustments for very small phone screens (e.g., <480px) */
-        @media (max-width: 480px) {
-            #timeDisplay {
-                font-size: 3rem; /* Smaller font for time on very small screens */
-            }
-            #dateDisplay {
-                font-size: 1.4rem; /* Smaller font for date */
-            }
-            .time-labels {
-                font-size: 0.65rem; /* Slightly smaller labels */
-                letter-spacing: 0.08em;
-            }
-            .day-indicator-item {
-                font-size: 0.6rem; /* Smaller day labels */
-            }
-            .day-circle {
-                width: 12px;
-                height: 12px;
-            }
-            .ampm-item {
-                font-size: 0.8rem; /* Smaller AM/PM text */
-            }
-            .ampm-circle {
-                width: 12px;
-                height: 12px;
-            }
-            .clock-display-container {
-                padding: 1rem 0.5rem; /* Reduced padding for compact display */
-            }
-            #headerTitle {
-                font-size: 1.75rem; /* Even smaller header for very small screens */
-            }
-        }
-
-        @media (max-width: 375px) { /* Targeting extra small devices like iPhone SE */
-            #timeDisplay {
-                font-size: 2.5rem;
-            }
-            #dateDisplay {
-                font-size: 1.2rem;
-            }
-            .time-labels {
-                font-size: 0.6rem;
-            }
-            .day-indicator-wrapper {
-                gap: 0.5rem; /* Tighter spacing for days */
+        /* Keyframe animation for confetti falling */
+        @keyframes fall {
+            to {
+                transform: translateY(100vh); /* Fall to the bottom of the viewport */
+                opacity: 0; /* Fade out as it falls */
             }
         }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="bg-slate-900 text-white flex items-center justify-center min-h-screen p-4 transition-all duration-500">
 
-    <!-- Header Container -->
-    <div id="headerContainer">
-        <div id="headerTitle" class="digital-blue-text">WELLCOME TO DIGITAL CLOCK</div>
-    </div>
+    <div id="game-container" class="w-full max-w-2xl mx-auto">
 
-    <!-- Main content wrapper to align the clock horizontally -->
-    <div class="main-content-wrapper">
-        <!-- Main Digital Wall Clock Display -->
-        <div class="clock-display-container relative">
-            <!-- Date Display: DD MM YY -->
-            <div class="time-labels">DATE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MONTH &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; YEAR</div>
-            <div id="dateDisplay" class="digital-blue-text">01 01 23</div>
+        <!-- 1. Home Screen -->
+        <div id="home-screen" class="text-center">
+            <h1 class="text-6xl font-black text-yellow-400 mb-2">Brain Blitz</h1>
+            <p class="text-slate-300 mb-8">Test your knowledge and beat the clock!</p>
+            
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Choose a Category</h2>
+                <div id="category-selector" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Categories will be dynamically injected here by JavaScript -->
+                </div>
+            </div>
 
-            <!-- Main Time Display: HH:MM:SS -->
-            <div class="time-labels mt-4">HOUR &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; MINUTE &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SECOND</div>
-            <div id="timeDisplay" class="digital-blue-text">11:33:25</div>
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold mb-4">Choose Difficulty</h2>
+                <div id="difficulty-selector" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Difficulties will be dynamically injected here by JavaScript -->
+                </div>
+            </div>
 
-            <div class="flex justify-between items-end w-full relative">
-                <!-- Day of Week Indicators -->
-                <div class="day-indicator-wrapper">
-                    <div class="day-indicator-item" id="day-sun">
-                        <div class="day-circle"></div>
-                        <span>SUN</span>
-                    </div>
-                    <div class="day-indicator-item" id="day-mon">
-                        <div class="day-circle"></div>
-                        <span>MON</span>
-                    </div>
-                    <div class="day-indicator-item" id="day-tue">
-                        <div class="day-circle"></div>
-                        <span>TUE</span>
-                        </div>
-                    <div class="day-indicator-item" id="day-wed">
-                        <div class="day-circle"></div>
-                        <span>WED</span>
-                    </div>
-                    <div class="day-indicator-item" id="day-thu">
-                        <div class="day-circle"></div>
-                        <span>THU</span>
-                    </div>
-                    <div class="day-indicator-item" id="day-fri">
-                        <div class="day-circle"></div>
-                        <span>FRI</span>
-                    </div>
-                    <div class="day-indicator-item" id="day-sat">
-                        <div class="day-circle"></div>
-                        <span>SAT</span>
+            <button id="start-quiz-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-full text-2xl w-full md:w-auto transition-transform transform hover:scale-105 shadow-lg disabled:bg-slate-500 disabled:cursor-not-allowed" disabled>Select Category & Difficulty to Start</button>
+            
+            <div class="mt-8 text-slate-400">
+                <h3 class="text-xl font-semibold mb-2">How to Play</h3>
+                <p>Select a category and difficulty, answer 5 questions per round, and score points for speed and accuracy!</p>
+                <p class="mt-2 text-sm">Use keys 1, 2, 3, 4 for quick answers on desktop.</p>
+            </div>
+        </div>
+
+        <!-- 2. Gameplay Screen -->
+        <div id="game-screen" class="hidden">
+            <!-- Top Bar: Progress & Score -->
+            <div class="flex justify-between items-center mb-4">
+                <div class="w-1/4">
+                    <p class="text-sm text-slate-300">Question</p>
+                    <p id="question-counter" class="text-xl font-bold">1 / 5</p>
+                </div>
+                <div class="w-1/2 text-center">
+                    <div class="w-full bg-slate-700 rounded-full h-2.5">
+                        <div id="timer-bar" class="bg-yellow-400 h-2.5 rounded-full" style="width: 100%"></div>
                     </div>
                 </div>
+                <div class="w-1/4 text-right">
+                    <p class="text-sm text-slate-300">Score</p>
+                    <p id="score-display" class="text-xl font-bold">0</p>
+                </div>
+            </div>
 
-                <!-- AM/PM Indicators -->
-                <div class="ampm-wrapper">
-                    <div class="ampm-item" id="ampm-am">
-                        <div class="ampm-circle"></div>
-                        <span>AM</span>
-                    </div>
-                    <div class="ampm-item" id="ampm-pm">
-                        <div class="ampm-circle"></div>
-                        <span>PM</span>
-                    </div>
+            <!-- Question Card -->
+            <div id="question-card" class="bg-slate-800 p-8 rounded-2xl shadow-2xl transition-all duration-300">
+                <p id="question-text" class="text-2xl md:text-3xl font-semibold mb-8 min-h-[100px]">Loading question...</p>
+                <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Options will be dynamically injected here -->
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Set Alarm Section -->
-    <div class="w-full max-w-md bg-gray-900 bg-opacity-70 p-6 rounded-xl shadow-lg mb-6 border border-gray-700">
-        <h2 class="text-2xl mb-4 digital-blue-text">Set Alarm</h2>
-        <form id="alarmForm" class="space-y-4">
-            <input type="time" id="alarmTime" class="w-full p-3 rounded-md input-field" required>
-            <input type="text" id="alarmLabel" placeholder="Label (e.g. Wake Up)" class="w-full p-3 rounded-md input-field">
-            <button type="submit" class="w-full p-3 rounded-md accent-button">Add Alarm</button>
-        </form>
-    </div>
-
-    <!-- Upcoming Alarms Section -->
-    <div class="w-full max-w-md bg-gray-900 bg-opacity-70 p-4 rounded-xl shadow-lg border border-gray-700">
-        <h3 class="text-xl mb-3 digital-blue-text">Upcoming Alarms</h3>
-        <ul id="alarmList" class="space-y-3"></ul>
-    </div>
-
-    <!-- Hidden audio element for alarm sound -->
-    <audio id="alarmSound">
-        <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
-        Your browser does not support the audio element.
-    </audio>
-
-    <!-- Custom Alarm Modal -->
-    <div id="alarmModal" class="modal hidden">
-        <div class="modal-content">
-            <h2 id="modalAlarmLabel" class="text-3xl digital-blue-text mb-4">Alarm!</h2>
-            <p id="modalAlarmTime" class="text-xl mb-6">00:00</p>
-            <div class="flex flex-col sm:flex-row justify-center items-center">
-                <button class="snooze" onclick="snoozeCurrentAlarm()">Snooze</button>
-                <button class="stop" onclick="stopAlarmAndCloseModal()">Stop</button>
+        <!-- 3. Result Screen -->
+        <div id="result-screen" class="hidden text-center relative overflow-hidden">
+            <div id="confetti-container" class="absolute inset-0 pointer-events-none z-0"></div> <!-- Confetti container -->
+            <h2 class="text-3xl font-bold text-yellow-400 mb-2">Quiz Complete!</h2>
+            <p class="text-slate-300 text-xl mb-6">Here's how you did:</p>
+            
+            <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl mb-8 max-w-md mx-auto z-10 relative"> <!-- Ensure content is above confetti -->
+                <p class="text-slate-400 text-lg">Your Final Score</p>
+                <p id="final-score" class="text-7xl font-black my-4">0</p>
+                
+                <div class="flex justify-around text-lg">
+                    <div>
+                        <p class="text-slate-400">Correct</p>
+                        <p id="correct-answers" class="font-bold text-green-400 text-2xl">0</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-400">Incorrect</p>
+                        <p id="incorrect-answers" class="font-bold text-red-400 text-2xl">0</p>
+                    </div>
+                </div>
             </div>
-            <input type="number" id="snoozeDurationInput" placeholder="Snooze (min)" value="5" min="1" class="mt-4 p-2 rounded-md input-field text-center w-32">
-            <div id="snoozeErrorMessage" class="modal-error-message"></div>
-        </div>
-    </div>
 
-    <!-- Footer with copyright -->
-    <footer class="mt-8 text-center text-gray-500 text-sm">
-        &copy; 2025 Digital Clock. All rights reserved.
-    </footer>
+            <div class="flex justify-center gap-4 z-10 relative"> <!-- Ensure buttons are above confetti -->
+                <button id="play-again-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-full text-lg transition-transform transform hover:scale-105">Play Again</button>
+                <button id="home-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-full text-lg transition-transform transform hover:scale-105">Back to Home</button>
+            </div>
+        </div>
+
+    </div>
 
     <script>
-        // --- DOM Element References ---
-        const timeDisplay = document.getElementById('timeDisplay');
-        const dateDisplay = document.getElementById('dateDisplay');
-        const dayIndicators = {
-            sun: document.getElementById('day-sun'),
-            mon: document.getElementById('day-mon'),
-            tue: document.getElementById('day-tue'),
-            wed: document.getElementById('day-wed'),
-            thu: document.getElementById('day-thu'),
-            fri: document.getElementById('day-fri'),
-            sat: document.getElementById('day-sat'),
+        // --- DOM ELEMENTS ---
+        const homeScreen = document.getElementById('home-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const categorySelector = document.getElementById('category-selector');
+        const difficultySelector = document.getElementById('difficulty-selector'); // New difficulty selector
+
+        const questionCounter = document.getElementById('question-counter');
+        const scoreDisplay = document.getElementById('score-display');
+        const timerBar = document.getElementById('timer-bar');
+        const questionCard = document.getElementById('question-card');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+
+        const finalScore = document.getElementById('final-score');
+        const correctAnswers = document.getElementById('correct-answers');
+        const incorrectAnswers = document.getElementById('incorrect-answers');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const homeBtn = document.getElementById('home-btn');
+        const confettiContainer = document.getElementById('confetti-container');
+
+        // --- GAME CONFIG ---
+        const QUESTIONS_PER_ROUND = 5;
+        const TIME_PER_QUESTION_CONFIG = {
+            'easy': 20, // 20 seconds for easy
+            'medium': 15, // 15 seconds for medium
+            'hard': 10   // 10 seconds for hard
         };
-        const ampmIndicators = {
-            am: document.getElementById('ampm-am'),
-            pm: document.getElementById('ampm-pm'),
+
+        // --- GAME DATA ---
+        // Quiz questions categorized by topic and difficulty
+        const quizData = {
+            "General Knowledge": {
+                'easy': [
+                    { question: "What is the capital of France?", options: ["Berlin", "Madrid", "Paris", "Rome"], answer: "Paris" },
+                    { question: "What is the largest planet in our solar system?", options: ["Earth", "Jupiter", "Mars", "Saturn"], answer: "Jupiter" },
+                    { question: "Who wrote 'To Kill a Mockingbird'?", options: ["Harper Lee", "J.K. Rowling", "Ernest Hemingway", "Mark Twain"], answer: "Harper Lee" },
+                    { question: "What is the chemical symbol for water?", options: ["O2", "CO2", "H2O", "NaCl"], answer: "H2O" },
+                    { question: "Which ocean is the largest?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: "Pacific" },
+                    { question: "How many continents are there?", options: ["5", "6", "7", "8"], answer: "7" },
+                ],
+                'medium': [
+                    { question: "Which mountain is the highest in the world?", options: ["K2", "Mount Everest", "Kangchenjunga", "Lhotse"], answer: "Mount Everest" },
+                    { question: "What is the longest river in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], answer: "Nile" },
+                    { question: "Who painted the Mona Lisa?", options: ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Claude Monet"], answer: "Leonardo da Vinci" },
+                    { question: "Which country is famous for the Great Wall?", options: ["Japan", "India", "China", "Egypt"], answer: "China" },
+                    { question: "What is the primary gas in Earth's atmosphere?", options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Argon"], answer: "Nitrogen" },
+                    { question: "What is the capital of Japan?", options: ["Seoul", "Beijing", "Tokyo", "Bangkok"], answer: "Tokyo" },
+                ],
+                'hard': [
+                    { question: "Which element has the atomic number 79?", options: ["Silver", "Gold", "Mercury", "Lead"], answer: "Gold" },
+                    { question: "What is the smallest country in the world?", options: ["Monaco", "Nauru", "Vatican City", "San Marino"], answer: "Vatican City" },
+                    { question: "Who developed the theory of relativity?", options: ["Isaac Newton", "Niels Bohr", "Albert Einstein", "Marie Curie"], answer: "Albert Einstein" },
+                    { question: "Which planet is known as the 'Red Planet'?", options: ["Jupiter", "Venus", "Mars", "Saturn"], answer: "Mars" },
+                    { question: "What is the deepest point in the Earth's oceans?", options: ["Puerto Rico Trench", "Java Trench", "Mariana Trench", "Kermadec Trench"], answer: "Mariana Trench" },
+                    { question: "Which of these is not a primary color of light?", options: ["Red", "Green", "Blue", "Yellow"], answer: "Yellow" },
+                ]
+            },
+            "Technology": {
+                'easy': [
+                    { question: "What does CPU stand for?", options: ["Central Process Unit", "Central Processing Unit", "Computer Personal Unit", "Central Processor Unit"], answer: "Central Processing Unit" },
+                    { question: "What does 'WWW' stand for?", options: ["World Wide Web", "World Wide Widget", "Web World Wide", "Wide Web World"], answer: "World Wide Web" },
+                    { question: "Which one is an input device?", options: ["Monitor", "Printer", "Keyboard", "Speaker"], answer: "Keyboard" },
+                    { question: "What company makes the iPhone?", options: ["Samsung", "Google", "Microsoft", "Apple"], answer: "Apple" },
+                    { question: "Which symbol is used for email addresses?", options: ["#", "@", "$", "%"], answer: "@" },
+                ],
+                'medium': [
+                    { question: "Which company developed the Python programming language?", options: ["Google", "Microsoft", "Python Software Foundation", "Facebook"], answer: "Python Software Foundation" },
+                    { question: "What does 'HTTP' stand for?", options: ["HyperText Transfer Protocol", "HyperText Transmission Protocol", "Hyperlink Transfer Protocol", "Hyperlink Transmission Protocol"], answer: "HyperText Transfer Protocol" },
+                    { question: "In what year was the first iPhone released?", options: ["2005", "2007", "2008", "2010"], answer: "2007" },
+                    { question: "What is the main function of a router?", options: ["Store data", "Connect to the internet", "Display graphics", "Forward data packets"], answer: "Forward data packets" },
+                    { question: "What is the smallest unit of data in a computer?", options: ["Byte", "Kilobyte", "Bit", "Gigabyte"], answer: "Bit" },
+                    { question: "Which is a popular version control system?", options: ["Jira", "Slack", "Git", "Trello"], answer: "Git" },
+                ],
+                'hard': [
+                    { question: "What is the name of the first computer programmer?", options: ["Bill Gates", "Ada Lovelace", "Charles Babbage", "Alan Turing"], answer: "Ada Lovelace" },
+                    { question: "Which encryption method is often used for securing web traffic?", options: ["MD5", "SHA-256", "AES", "RSA"], answer: "RSA" },
+                    { question: "What is the purpose of an API?", options: ["To store data", "To manage hardware", "To allow software components to communicate", "To display graphics"], answer: "To allow software components to communicate" },
+                    { question: "What does SQL stand for?", options: ["Structured Question Language", "Standard Query Language", "Structured Query Logic", "Sequential Query Language"], answer: "Structured Query Language" },
+                    { question: "Which company developed the JavaScript programming language?", options: ["Microsoft", "Google", "Netscape", "Sun Microsystems"], answer: "Netscape" },
+                    { question: "What is a 'fork' in blockchain terminology?", options: ["A type of cryptocurrency", "A split in the blockchain's history", "A mining tool", "A new transaction"], answer: "A split in the blockchain's history" },
+                ]
+            },
+            "History": {
+                'easy': [
+                    { question: "Who was the first President of the United States?", options: ["Abraham Lincoln", "Thomas Jefferson", "George Washington", "John Adams"], answer: "George Washington" },
+                    { question: "In which year did World War II end?", options: ["1942", "1945", "1950", "1939"], answer: "1945" },
+                    { question: "The ancient city of Rome was built on how many hills?", options: ["Five", "Seven", "Nine", "Three"], answer: "Seven" },
+                    { question: "Who discovered penicillin?", options: ["Marie Curie", "Albert Einstein", "Alexander Fleming", "Isaac Newton"], answer: "Alexander Fleming" },
+                    { question: "The Renaissance began in which country?", options: ["France", "England", "Spain", "Italy"], answer: "Italy" },
+                ],
+                'medium': [
+                    { question: "When did the French Revolution begin?", options: ["1776", "1789", "1804", "1815"], answer: "1789" },
+                    { question: "Who was the queen of ancient Egypt?", options: ["Nefertiti", "Hatshepsut", "Cleopatra", "Sobekneferu"], answer: "Cleopatra" },
+                    { question: "Which empire was ruled by Genghis Khan?", options: ["Roman Empire", "Ottoman Empire", "Mongol Empire", "Persian Empire"], answer: "Mongol Empire" },
+                    { question: "The American Civil War was fought between which years?", options: ["1850-1855", "1861-1865", "1870-1875", "1845-1850"], answer: "1861-1865" },
+                    { question: "What was the primary purpose of the ancient Roman aqueducts?", options: ["Transportation", "Irrigation", "Water supply", "Defense"], answer: "Water supply" },
+                ],
+                'hard': [
+                    { question: "Which ancient civilization developed the concept of zero?", options: ["Greeks", "Romans", "Mayans", "Egyptians"], answer: "Mayans" },
+                    { question: "Who was the last pharaoh of Egypt?", options: ["Tutankhamun", "Ramses II", "Cleopatra VII", "Akhenaten"], answer: "Cleopatra VII" },
+                    { question: "The Battle of Waterloo took place in which year?", options: ["1805", "1812", "1815", "1821"], answer: "1815" },
+                    { question: "Which document was signed in 1215 in England, limiting the power of the king?", options: ["Bill of Rights", "Magna Carta", "Act of Supremacy", "Petition of Right"], answer: "Magna Carta" },
+                    { question: "Who led the Soviet Union during the Cuban Missile Crisis?", options: ["Joseph Stalin", "Mikhail Gorbachev", "Nikita Khrushchev", "Leon Trotsky"], answer: "Nikita Khrushchev" },
+                ]
+            },
+            "Anime": {
+                'easy': [
+                    { question: "Who is the main protagonist of 'Dragon Ball Z'?", options: ["Vegeta", "Gohan", "Goku", "Piccolo"], answer: "Goku" },
+                    { question: "In 'Naruto', what is the name of the nine-tailed fox sealed inside the main character?", options: ["Shukaku", "Kurama", "Matatabi", "Gyuki"], answer: "Kurama" },
+                    { question: "What is the name of the pirate crew led by Monkey D. Luffy in 'One Piece'?", options: ["Straw Hat Pirates", "Heart Pirates", "Kid Pirates", "Blackbeard Pirates"], answer: "Straw Hat Pirates" },
+                    { question: "Which anime features characters named Eren, Mikasa, and Armin?", options: ["Demon Slayer", "Jujutsu Kaisen", "My Hero Academia", "Attack on Titan"], answer: "Attack on Titan" },
+                    { question: "In 'Death Note', what must be written in the notebook to kill someone?", options: ["Their full name", "Their birth date", "A cause of death", "Their address"], answer: "Their full name" },
+                ],
+                'medium': [
+                    { question: "What is the ultimate goal of Gon Freecss in 'Hunter x Hunter'?", options: ["Become a Hokage", "Find his father", "Become the Pirate King", "Win the Holy Grail War"], answer: "Find his father" },
+                    { question: "In 'Fullmetal Alchemist', what is the law of Equivalent Exchange?", options: ["You must give up something of equal value to gain something.", "Everything has a price.", "Alchemy is magic.", "Truth is subjective."], answer: "You must give up something of equal value to gain something." },
+                    { question: "What is the name of the organization that investigates demons in 'Demon Slayer'?", options: ["Demon Slayer Corps", "Soul Reapers", "Jujutsu Sorcerers", "Survey Corps"], answer: "Demon Slayer Corps" },
+                    { question: "What is the name of the main city in 'Attack on Titan' where humanity resides?", options: ["Shiganshina", "Stohess", "Trost", "All of the above"], answer: "All of the above" },
+                    { question: "Which anime features a character who can erase anyone from existence with a single touch?", options: ["One-Punch Man", "Mob Psycho 100", "Erased", "Kira Yoshikage (Jojo's Bizarre Adventure)"], answer: "Kira Yoshikage (Jojo's Bizarre Adventure)" },
+                ],
+                'hard': [
+                    { question: "What is the name of the sentient book in 'Re:Zero - Starting Life in Another World'?", options: ["Beatrice", "Rem", "Ram", "Emilia"], answer: "Beatrice" },
+                    { question: "In 'Psycho-Pass', what is the system that assesses a person's mental state and crime potential?", options: ["Sibyl System", "Akashic Records", "Dominator", "Crime Coefficient"], answer: "Sibyl System" },
+                    { question: "Which character in 'Code Geass' possesses the Geass power to command absolute obedience?", options: ["Suzaku Kururugi", "C.C.", "Lelouch Lamperouge", "Kallen Stadtfeld"], answer: "Lelouch Lamperouge" },
+                    { question: "What is the name of the cursed technique that Gojo Satoru uses in 'Jujutsu Kaisen' to manipulate space?", options: ["Limitless", "Red", "Blue", "Hollow Purple"], answer: "Limitless" },
+                    { question: "In 'Steins;Gate', what device allows messages to be sent to the past?", options: ["D-Mail", "Time Machine", "Phonewave", "Future Gadget"], answer: "Phonewave" },
+                ]
+            }
         };
 
-        const alarmForm = document.getElementById('alarmForm');
-        const alarmSound = document.getElementById('alarmSound');
-        const alarmList = document.getElementById('alarmList');
-        const alarmModal = document.getElementById('alarmModal');
-        const modalAlarmLabel = document.getElementById('modalAlarmLabel');
-        const modalAlarmTime = document.getElementById('modalAlarmTime');
-        const snoozeDurationInput = document.getElementById('snoozeDurationInput');
-        const snoozeErrorMessage = document.getElementById('snoozeErrorMessage');
+        // --- GAME STATE ---
+        let currentQuestions = []; // Array to hold questions for the current round
+        let currentQuestionIndex = 0; // Index of the current question
+        let score = 0; // Player's current score
+        let correctCount = 0; // Number of correct answers
+        let timer; // Holds the setInterval ID for the timer
+        let timeLeft = 0; // Remaining time for the current question, initialized dynamically
+        let selectedCategory = null; // Stores the user's selected quiz category
+        let selectedDifficulty = null; // Stores the user's selected difficulty
 
-        // --- Global State ---
-        // Array to store alarms, initialized from local storage
-        // Each alarm object: { id: unique string, time: "HH:MM", label: "...", triggered: false, enabled: true }
-        let alarms = JSON.parse(localStorage.getItem('alarms')) || [];
-        let ringingAlarmIndex = -1; // To keep track of which alarm is currently ringing
+        // --- AUDIO SYNTHESIZERS (Tone.js) ---
+        // Simple synth for correct answers
+        const correctSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "triangle" },
+            envelope: {
+                attack: 0.005,
+                decay: 0.1,
+                sustain: 0.05,
+                release: 0.1
+            }
+        }).toDestination();
 
-        // To prevent re-triggering within the same minute after stop/snooze
-        let lastMinuteChecked = -1;
+        // Simple synth for incorrect answers
+        const incorrectSynth = new Tone.PolySynth(Tone.Synth, {
+            oscillator: { type: "sawtooth" },
+            envelope: {
+                attack: 0.01,
+                decay: 0.2,
+                sustain: 0.0,
+                release: 0.2
+            }
+        }).toDestination();
 
-        // Arrays for day and month names (for display, matching image style)
-        const daysShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-        const monthsNumeric = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-
-        // --- Utility Functions ---
-
-        /**
-         * Generates a simple unique ID for alarms.
-         * @returns {string} A unique ID.
-         */
-        function generateUniqueId() {
-            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        // --- INITIALIZATION ---
+        // Initializes the game by populating categories and adding event listeners
+        function init() {
+            populateCategories();
+            populateDifficulties(); // Populate difficulty options
+            addEventListeners();
+            showScreen('home'); // Ensure home screen is visible on load
+            updateStartButtonState(); // Update button state initially
         }
 
-        /**
-         * Saves the current alarms array to local storage.
-         * This function should be called every time the 'alarms' array is modified.
-         */
-        function saveAlarms() {
-            localStorage.setItem('alarms', JSON.stringify(alarms));
+        // Populates the category selection buttons on the home screen
+        function populateCategories() {
+            categorySelector.innerHTML = ''; // Clear existing buttons
+            Object.keys(quizData).forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'p-4 bg-slate-800 rounded-lg font-semibold hover:bg-purple-600 hover:text-white transition-all duration-200 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-yellow-400';
+                button.textContent = category;
+                button.dataset.category = category; // Store category name in a data attribute
+                button.addEventListener('click', () => selectCategory(category, button));
+                categorySelector.appendChild(button);
+            });
         }
 
-        /**
-         * Displays a temporary error message in the alarm modal.
-         * @param {string} message - The error message to display.
-         */
-        function showModalError(message) {
-            snoozeErrorMessage.textContent = message;
-            snoozeErrorMessage.classList.add('show');
-            setTimeout(() => {
-                snoozeErrorMessage.classList.remove('show');
-            }, 3000); // Hide after 3 seconds
+        // Populates the difficulty selection buttons on the home screen
+        function populateDifficulties() {
+            difficultySelector.innerHTML = ''; // Clear existing buttons
+            const difficulties = ['easy', 'medium', 'hard'];
+            difficulties.forEach(difficulty => {
+                const button = document.createElement('button');
+                button.className = 'p-4 bg-slate-800 rounded-lg font-semibold hover:bg-purple-600 hover:text-white transition-all duration-200 border-2 border-transparent focus:outline-none focus:ring-2 focus:ring-yellow-400 capitalize';
+                button.textContent = difficulty;
+                button.dataset.difficulty = difficulty;
+                button.addEventListener('click', () => selectDifficulty(difficulty, button));
+                difficultySelector.appendChild(button);
+            });
+        }
+        
+        // Handles category selection, updates UI and enables start button
+        function selectCategory(category, button) {
+            selectedCategory = category;
+            // Reset styles for all category buttons
+            document.querySelectorAll('#category-selector button').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white', 'border-yellow-400');
+                btn.classList.add('bg-slate-800');
+            });
+            // Apply active style to the clicked button
+            button.classList.add('bg-purple-600', 'text-white');
+            button.classList.remove('bg-slate-800');
+            updateStartButtonState();
         }
 
-        // --- Clock and Alarm Logic ---
+        // Handles difficulty selection, updates UI and enables start button
+        function selectDifficulty(difficulty, button) {
+            selectedDifficulty = difficulty;
+            // Reset styles for all difficulty buttons
+            document.querySelectorAll('#difficulty-selector button').forEach(btn => {
+                btn.classList.remove('bg-purple-600', 'text-white', 'border-yellow-400');
+                btn.classList.add('bg-slate-800');
+            });
+            // Apply active style to the clicked button
+            button.classList.add('bg-purple-600', 'text-white');
+            button.classList.remove('bg-slate-800');
+            updateStartButtonState();
+        }
 
-        /**
-         * Updates the digital clock display, date, day indicators, and AM/PM.
-         * Also checks for triggered alarms and manages their state.
-         */
-        function updateClock() {
-            const now = new Date();
-            const currentMinute = now.getMinutes();
+        // Updates the state of the start quiz button based on category and difficulty selection
+        function updateStartButtonState() {
+            if (selectedCategory && selectedDifficulty) {
+                startQuizBtn.disabled = false;
+                startQuizBtn.textContent = 'Start Quiz!';
+            } else {
+                startQuizBtn.disabled = true;
+                startQuizBtn.textContent = 'Select Category & Difficulty to Start';
+            }
+        }
 
-            // Reset 'triggered' flags for all alarms when the minute changes.
-            // This allows alarms to ring again if their time matches in a new minute,
-            // but prevents immediate re-triggering within the same minute if stopped.
-            if (currentMinute !== lastMinuteChecked) {
-                alarms.forEach(alarm => {
-                    alarm.triggered = false;
+        // Adds all necessary event listeners for game buttons and keyboard shortcuts
+        function addEventListeners() {
+            startQuizBtn.addEventListener('click', startQuiz);
+            playAgainBtn.addEventListener('click', startQuiz);
+            homeBtn.addEventListener('click', () => {
+                showScreen('home');
+                resetGame();
+                // Deselect category and difficulty and disable start button when going back to home
+                selectedCategory = null;
+                selectedDifficulty = null;
+                updateStartButtonState(); // Re-evaluate button state
+                document.querySelectorAll('#category-selector button').forEach(btn => {
+                    btn.classList.remove('bg-purple-600', 'text-white');
+                    btn.classList.add('bg-slate-800');
                 });
-                lastMinuteChecked = currentMinute;
-            }
-
-            // Update time display (HH:MM:SS in 12-hour format)
-            const hours24 = now.getHours();
-            const hours12 = String(hours24 % 12 || 12).padStart(2, '0'); // Convert 0-23 to 1-12
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            timeDisplay.textContent = `${hours12}:${minutes}:${seconds}`;
-
-            // Update date display (DD MM YY)
-            const date = String(now.getDate()).padStart(2, '0');
-            const month = monthsNumeric[now.getMonth()];
-            const year = String(now.getFullYear()).slice(-2); // Get last two digits of the year
-            dateDisplay.textContent = `${date} ${month} ${year}`;
-
-            // Update day of week indicator (highlight current day)
-            const currentDayIndex = now.getDay(); // 0 for Sunday, 1 for Monday, etc.
-            Object.values(dayIndicators).forEach((el, index) => {
-                if (index === currentDayIndex) {
-                    el.classList.add('active');
-                } else {
-                    el.classList.remove('active');
-                }
+                document.querySelectorAll('#difficulty-selector button').forEach(btn => {
+                    btn.classList.remove('bg-purple-600', 'text-white');
+                    btn.classList.add('bg-slate-800');
+                });
             });
-
-            // Update AM/PM indicator (highlight current period)
-            const isAm = hours24 < 12;
-            ampmIndicators.am.classList.toggle('active', isAm);
-            ampmIndicators.pm.classList.toggle('active', !isAm);
-
-            // Get current time in 24-hour HH:MM format for alarm comparison
-            const currentTime24 = `${String(hours24).padStart(2, '0')}:${minutes}`;
-
-            // Iterate over alarms to check if any should trigger
-            alarms.forEach((alarm, index) => {
-                // Check if alarm is enabled, NOT already triggered for this minute, and time matches current time
-                if (alarm.enabled && !alarm.triggered && alarm.time === currentTime24) {
-                    alarm.triggered = true; // Mark as triggered for this minute
-                    ringingAlarmIndex = index; // Store the index of the ringing alarm
-                    showAlarmModal(alarm.label || 'Alarm!', alarm.time); // Show the custom modal
-                    alarmSound.play(); // Play the alarm sound
-                    saveAlarms(); // Save the updated triggered state to local storage
+            
+            // Keyboard shortcuts for answering questions (1, 2, 3, 4)
+            document.addEventListener('keydown', (e) => {
+                // Only active if game screen is visible and options are displayed
+                if (gameScreen.classList.contains('hidden') || optionsContainer.children.length === 0) return;
+                if (['1', '2', '3', '4'].includes(e.key)) {
+                    const optionButtons = optionsContainer.querySelectorAll('button');
+                    const index = parseInt(e.key) - 1; // Convert key to 0-based index
+                    if (optionButtons[index] && !optionButtons[index].disabled) { // Check if button exists and is not disabled
+                        optionButtons[index].click(); // Simulate a click on the corresponding option button
+                    }
                 }
             });
         }
-
-        /**
-         * Displays the custom alarm modal with alarm details.
-         * @param {string} label - The label for the alarm.
-         * @param {string} time24hr - The time of the alarm in 24-hour HH:MM format.
-         */
-        function showAlarmModal(label, time24hr) {
-            modalAlarmLabel.textContent = label;
-            // Convert 24-hour time to 12-hour format for modal display
-            const [hours24, minutes] = time24hr.split(':').map(Number);
-            const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
-            const ampm = hours24 < 12 ? 'AM' : 'PM';
-            modalAlarmTime.textContent = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
-            alarmModal.classList.remove('hidden'); // Show the modal
-            snoozeErrorMessage.classList.remove('show'); // Hide any previous error message when showing modal
-        }
-
-        /**
-         * Stops the alarm sound and closes the custom modal.
-         */
-        function stopAlarmAndCloseModal() {
-            alarmSound.pause();
-            alarmSound.currentTime = 0; // Rewind to the beginning
-            alarmModal.classList.add('hidden'); // Hide the modal
-
-            // Reset triggered state for the currently ringing alarm
-            if (ringingAlarmIndex !== -1) {
-                // Keep 'triggered' as true for the current minute to prevent immediate re-ringing.
-                // It will be reset to false by `updateClock` when the minute changes.
-                // alarms[ringingAlarmIndex].triggered = false; // <-- This line is removed/commented out
-                ringingAlarmIndex = -1; // Reset ringing alarm index
-                saveAlarms(); // Save the updated triggered state (if any other properties changed, though not here)
+        
+        // --- GAME FLOW ---
+        // Starts the quiz after category and difficulty selection
+        function startQuiz() {
+            if (!selectedCategory || !selectedDifficulty) {
+                console.error("Category or Difficulty not selected!");
+                return;
             }
-            renderAlarms(); // Re-render to ensure UI reflects latest alarm states
+            // Ensure Tone.js context is running for sound effects
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            playStartSound(); // Play start sound
+            resetGame(); // Reset game state for a new round
+            // Set time per question based on selected difficulty
+            timeLeft = TIME_PER_QUESTION_CONFIG[selectedDifficulty]; 
+
+            // Shuffle questions from the selected category and difficulty and pick the required number
+            currentQuestions = shuffleArray(quizData[selectedCategory][selectedDifficulty]).slice(0, QUESTIONS_PER_ROUND);
+            showScreen('game'); // Show the game screen
+            loadNextQuestion(); // Load the first question
+        }
+        
+        // Resets all game-related state variables
+        function resetGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            scoreDisplay.textContent = '0';
+            questionCounter.textContent = `1 / ${QUESTIONS_PER_ROUND}`;
+            clearInterval(timer); // Clear any running timer
+            confettiContainer.innerHTML = ''; // Clear confetti from previous game
         }
 
-        /**
-         * Snoozes the currently ringing alarm for a user-specified duration.
-         */
-        function snoozeCurrentAlarm() {
-            const snoozeMinutes = parseInt(snoozeDurationInput.value);
-            if (isNaN(snoozeMinutes) || snoozeMinutes <= 0) {
-                showModalError('Please enter a valid snooze duration (minutes > 0).');
+        // Loads the next question or ends the quiz if all questions are answered
+        function loadNextQuestion() {
+            if (currentQuestionIndex >= currentQuestions.length) {
+                endQuiz(); // All questions answered, end the quiz
                 return;
             }
 
-            if (ringingAlarmIndex !== -1) {
-                const alarm = alarms[ringingAlarmIndex];
-                const [hour, minute] = alarm.time.split(':').map(Number); // Use 24-hour for internal calculation
-                const snoozeDate = new Date();
-                snoozeDate.setHours(hour);
-                snoozeDate.setMinutes(minute + snoozeMinutes);
-                snoozeDate.setSeconds(0); // Ensure snooze starts from 0 seconds
+            resetQuestionUI(); // Reset UI elements (shake, score animation)
+            
+            const question = currentQuestions[currentQuestionIndex];
+            questionText.textContent = "Loading question..."; // Show loading state
+            optionsContainer.innerHTML = ''; // Clear previous options to prevent interaction during load
 
-                const newHour = String(snoozeDate.getHours()).padStart(2, '0');
-                const newMinute = String(snoozeDate.getMinutes()).padStart(2, '0');
+            // Small delay to simulate loading and show loading text
+            setTimeout(() => {
+                questionText.textContent = question.question;
+                questionCounter.textContent = `${currentQuestionIndex + 1} / ${QUESTIONS_PER_ROUND}`;
+                
+                // Create and append option buttons for the current question
+                const shuffledOptions = shuffleArray(question.options); // Shuffle options to randomize order
+                shuffledOptions.forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'w-full bg-slate-700 p-4 rounded-lg text-left font-semibold hover:bg-purple-600 transition-all duration-200 disabled:opacity-50 disabled:hover:bg-slate-700';
+                    button.innerHTML = `<span class="bg-slate-600 text-yellow-300 font-bold rounded-md px-2 py-1 mr-4">${index + 1}</span>${option}`;
+                    button.addEventListener('click', () => selectAnswer(option, question.answer, button));
+                    optionsContainer.appendChild(button);
+                });
 
-                alarm.time = `${newHour}:${newMinute}`; // Store new snooze time in 24-hour format
-                // Append (Snoozed) to label if not already there
-                if (!alarm.label.includes('(Snoozed)')) {
-                    alarm.label += ' (Snoozed)';
+                startTimer(); // Start the timer for the new question
+            }, 300); // Short delay
+        }
+        
+        // Handles the user's answer selection
+        function selectAnswer(selected, correct, button) {
+            clearInterval(timer); // Stop the timer immediately
+            const isCorrect = selected === correct;
+
+            // Disable all option buttons to prevent multiple answers
+            optionsContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                // Correct answer: update score, apply styling, play sound
+                score += 100 + (timeLeft * 10); // Base points + time bonus
+                correctCount++;
+                scoreDisplay.textContent = score;
+                scoreDisplay.classList.add('count-up'); // Trigger score animation
+                button.classList.remove('bg-slate-700');
+                button.classList.add('bg-green-500', 'ring-4', 'ring-green-300');
+                playCorrectSound();
+            } else {
+                // Incorrect answer: apply shake animation, highlight incorrect, then show correct, play sound
+                questionCard.classList.add('shake'); // Trigger shake animation
+                button.classList.remove('bg-slate-700');
+                button.classList.add('bg-red-500', 'ring-4', 'ring-red-300');
+                playIncorrectSound();
+
+                // Highlight the correct answer among the options
+                optionsContainer.querySelectorAll('button').forEach(btn => {
+                    // Extract text content by removing the number prefix
+                    const optionText = btn.textContent.replace(/^\s*\d+\s*/, ''); 
+                    if (optionText === correct) {
+                        btn.classList.remove('bg-slate-700');
+                        btn.classList.add('bg-green-500');
+                    }
+                });
+            }
+            
+            // Move to the next question after a short delay to allow visual feedback
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadNextQuestion();
+            }, 1500);
+        }
+        
+        // Ends the quiz and displays the results screen
+        function endQuiz() {
+            showScreen('result');
+            animateScore(); // Animate the final score count-up
+            correctAnswers.textContent = correctCount;
+            incorrectAnswers.textContent = currentQuestions.length - correctCount;
+
+            // Launch confetti for good scores (e.g., more than half correct, considering time bonus too)
+            if (correctCount >= QUESTIONS_PER_ROUND / 2) { // Changed condition to be based on correct answers count
+                launchConfetti();
+            }
+            playEndSound(); // Play end sound
+        }
+        
+        // --- TIMER LOGIC ---
+        // Starts the countdown timer for the current question
+        function startTimer() {
+            // Reset timeLeft to the appropriate value for the current difficulty
+            timeLeft = TIME_PER_QUESTION_CONFIG[selectedDifficulty]; 
+            timerBar.style.transition = 'none'; // Reset transition to instantly set width to 100%
+            timerBar.style.width = '100%';
+            
+            // Force a reflow to ensure the width change is applied before starting the transition
+            void timerBar.offsetWidth; 
+            
+            timerBar.style.transition = `width ${timeLeft}s linear`; // Apply full transition based on current timeLeft
+            timerBar.style.width = '0%'; // Start shrinking the bar
+
+            clearInterval(timer); // Clear any previously running timer
+            timer = setInterval(() => {
+                timeLeft--;
+                if (timeLeft < 0) {
+                    clearInterval(timer); // Stop timer
+                    timeUp(); // Handle time running out
                 }
-                alarm.triggered = false; // Reset triggered state so it can ring again AFTER snooze time is reached
-                alarm.enabled = true; // Ensure it's enabled after snooze
-                saveAlarms(); // Save changes to local storage
-            }
-
-            stopAlarmAndCloseModal(); // Stop sound and close modal
+            }, 1000); // Update every second
         }
 
-        /**
-         * Renders the list of alarms in the UI.
-         * This function rebuilds the alarm list dynamically based on the 'alarms' array.
-         */
-        function renderAlarms() {
-            alarmList.innerHTML = ''; // Clear existing list to prevent duplicates
-            alarms.forEach((alarm, index) => {
-                const li = document.createElement('li');
-                li.className = `flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-900 bg-opacity-70 p-3 rounded-md mb-3 border border-gray-700 transition-all duration-300 ease-in-out ${alarm.enabled ? '' : 'opacity-50 line-through'}`;
-
-                // Alarm details (Time and Label)
-                const alarmDetails = document.createElement('div');
-                alarmDetails.className = 'flex flex-col flex-grow mb-2 sm:mb-0';
-                alarmDetails.innerHTML = `
-                    <span class="text-xl font-semibold digital-blue-text">${formatTime12hr(alarm.time)}</span>
-                    <span class="text-gray-400 text-sm">${alarm.label || 'Alarm'}</span>
-                `;
-                li.appendChild(alarmDetails);
-
-                // Controls (Toggle, Delete)
-                const controls = document.createElement('div');
-                controls.className = 'flex items-center space-x-3 ml-auto';
-
-                // Toggle Switch
-                const toggleLabel = document.createElement('label');
-                toggleLabel.className = 'toggle-switch';
-                const toggleInput = document.createElement('input');
-                toggleInput.type = 'checkbox';
-                toggleInput.checked = alarm.enabled;
-                toggleInput.onchange = () => toggleAlarm(alarm.id);
-                const sliderSpan = document.createElement('span');
-                sliderSpan.className = 'slider';
-                toggleLabel.appendChild(toggleInput);
-                toggleLabel.appendChild(sliderSpan);
-                controls.appendChild(toggleLabel);
-
-                // Delete Button (SVG for professional icon)
-                const deleteButton = document.createElement('button');
-                deleteButton.onclick = () => deleteAlarm(alarm.id);
-                deleteButton.className = 'p-2 rounded-full bg-red-600 hover:bg-red-700 transition-colors duration-200 shadow-md';
-                deleteButton.innerHTML = `
-                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"></path>
-                    </svg>
-                `;
-                deleteButton.title = "Delete Alarm";
-                controls.appendChild(deleteButton);
-
-                li.appendChild(controls);
-                alarmList.appendChild(li);
+        // Handles the scenario when the time for a question runs out
+        function timeUp() {
+            // Treat as an incorrect answer
+            questionCard.classList.add('shake'); // Apply shake animation
+            optionsContainer.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true; // Disable all options
+                // Highlight the correct answer
+                const optionText = btn.textContent.replace(/^\s*\d+\s*/, ''); 
+                if (optionText === currentQuestions[currentQuestionIndex].answer) {
+                    btn.classList.remove('bg-slate-700');
+                    btn.classList.add('bg-green-500');
+                }
             });
+            playIncorrectSound(); // Play incorrect sound for time-up
+
+            // Move to the next question after a delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadNextQuestion();
+            }, 1500);
         }
 
-        /**
-         * Converts 24-hour time (HH:MM) to 12-hour format (HH:MM AM/PM).
-         * @param {string} time24hr - Time in "HH:MM" format.
-         * @returns {string} Time in "HH:MM AM/PM" format.
-         */
-        function formatTime12hr(time24hr) {
-            const [hours, minutes] = time24hr.split(':').map(Number);
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = String(hours % 12 || 12).padStart(2, '0');
-            return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+        // --- AUDIO FUNCTIONS ---
+        function playCorrectSound() {
+            correctSynth.triggerAttackRelease("C5", "8n"); // A simple high pitched sound
         }
 
-        /**
-         * Toggles the enabled state of an alarm.
-         * @param {string} id - The unique ID of the alarm to toggle.
-         */
-        function toggleAlarm(id) {
-            const alarmIndex = alarms.findIndex(alarm => alarm.id === id);
-            if (alarmIndex > -1) {
-                alarms[alarmIndex].enabled = !alarms[alarmIndex].enabled;
-                saveAlarms();
-                renderAlarms(); // Re-render to update UI
+        function playIncorrectSound() {
+            incorrectSynth.triggerAttackRelease("C3", "8n"); // A simple low pitched sound
+        }
+
+        function playStartSound() {
+            correctSynth.triggerAttackRelease(["C4", "E4", "G4"], "4n"); // A simple chord for start
+        }
+
+        function playEndSound() {
+            // More elaborate chord for end
+            correctSynth.triggerAttackRelease(["C5", "E5", "G5"], "2n", Tone.now());
+            correctSynth.triggerAttackRelease(["C6", "E6", "G6"], "2n", Tone.now() + 0.2);
+        }
+
+
+        // --- UI & ANIMATION HELPERS ---
+        // Resets UI elements for the next question
+        function resetQuestionUI() {
+            questionCard.classList.remove('shake'); // Remove shake animation class
+            scoreDisplay.classList.remove('count-up'); // Remove score animation class
+            timerBar.style.transition = 'width 0.1s linear'; // Reset timer bar transition for next question start
+            timerBar.style.width = '100%'; // Ensure timer bar is full at the start of a new question
+        }
+        
+        // Manages which game screen is visible
+        function showScreen(screenName) {
+            homeScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            
+            if (screenName === 'home') homeScreen.classList.remove('hidden');
+            else if (screenName === 'game') gameScreen.classList.remove('hidden');
+            else if (screenName === 'result') resultScreen.classList.remove('hidden');
+        }
+
+        // Animates the final score counting up on the result screen
+        function animateScore() {
+            let displayedScore = 0;
+            const scoreInterval = setInterval(() => {
+                // Calculate increment to smoothly reach the final score
+                const increment = Math.ceil((score - displayedScore) / 10);
+                displayedScore += increment;
+                if (displayedScore >= score) {
+                    displayedScore = score; // Ensure it doesn't overshoot
+                    clearInterval(scoreInterval); // Stop animation when done
+                }
+                finalScore.textContent = displayedScore;
+            }, 50); // Update every 50ms
+        }
+
+        // Creates and launches confetti particles on the result screen
+        function launchConfetti() {
+            confettiContainer.innerHTML = ''; // Clear any old confetti
+            const colors = ['#fde047', '#a855f7', '#4ade80', '#fb7185', '#0ea5e9', '#ec4899']; // Define more confetti colors
+            for (let i = 0; i < 150; i++) { // Generate more confetti pieces
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}%`; // Random horizontal position
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; // Random color
+                confetti.style.animationDelay = `${Math.random() * 3}s`; // Random start delay for staggered fall
+                confetti.style.animationDuration = `${2 + Math.random() * 2}s`; // Random animation duration
+                confetti.style.transform = `rotate(${Math.random() * 360}deg) scale(${0.5 + Math.random()})`; // Random initial rotation and size
+                confettiContainer.appendChild(confetti);
             }
         }
 
-        /**
-         * Deletes an alarm from the list.
-         * @param {string} id - The unique ID of the alarm to delete.
-         */
-        function deleteAlarm(id) {
-            alarms = alarms.filter(alarm => alarm.id !== id);
-            saveAlarms();
-            renderAlarms(); // Re-render to update UI
+        // --- UTILITY ---
+        // Fisher-Yates shuffle algorithm to randomize array order
+        function shuffleArray(array) {
+            // Create a shallow copy to avoid modifying the original array if it's referenced elsewhere
+            const newArray = [...array]; 
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+            }
+            return newArray;
         }
 
-        // --- Event Listeners ---
-
-        // Handle alarm form submission
-        alarmForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const alarmTimeInput = document.getElementById('alarmTime');
-            const alarmLabelInput = document.getElementById('alarmLabel');
-
-            const time = alarmTimeInput.value;
-            const label = alarmLabelInput.value.trim();
-
-            if (!time) {
-                // In a real app, you might show a user-friendly error message
-                console.error("Alarm time is required.");
-                return;
-            }
-
-            const newAlarm = {
-                id: generateUniqueId(),
-                time: time, // Stored in 24-hour format
-                label: label,
-                triggered: false,
-                enabled: true
-            };
-            alarms.push(newAlarm);
-            saveAlarms(); // Save after adding new alarm
-            renderAlarms(); // Re-render the list
-            alarmForm.reset(); // Clear the form
-        });
-
-        // --- Initialization ---
-
-        // Initial rendering of alarms when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            renderAlarms();
-            updateClock(); // Call once immediately to prevent initial blank display
-            setInterval(updateClock, 1000); // Update every second
-        });
+        // --- START THE APP ---
+        init(); // Call initialization function when the script loads
     </script>
 </body>
 </html>
