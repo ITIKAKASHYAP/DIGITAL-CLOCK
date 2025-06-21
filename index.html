@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Digital Wall Clock</title>
+    <title>Professional Digital Clock</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Orbitron for digital display, Inter for other text -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght{400;500;600}&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         /* Body background for a clean, professional look */
         body {
@@ -275,7 +275,7 @@
         }
 
         /* Header styles */
-        #headerContainer { /* Renamed from headerClockContainer as it's no longer just a clock */
+        #headerContainer {
             width: 100%;
             text-align: center;
             padding: 1rem 0;
@@ -293,32 +293,11 @@
             text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4);
         }
 
-        /* Styles for "DIGITAL" and "CLOCK" side containers */
-        .side-text-container {
-            display: flex;
-            flex-direction: column; /* Always stack vertically */
-            justify-content: center;
-            align-items: center;
-            flex-shrink: 0; /* Prevent shrinking */
-            min-width: 120px; /* Minimum width for the text containers */
-            font-family: 'Orbitron', sans-serif; /* Digital font */
-            font-weight: 500;
-            color: #00E0E0; /* Digital blue text */
-            text-shadow: 0 0 8px rgba(0, 224, 224, 0.7), 0 0 20px rgba(0, 224, 224, 0.4);
-            margin: 0 2rem; /* Spacing between side containers and clock */
-            text-align: center;
-            line-height: 1; /* Adjust line height for balanced vertical spacing */
-            font-size: 3rem; /* Default large font size */
-        }
-        .side-text-container span {
-            display: block; /* Always make each letter a block to stack vertically */
-        }
-        
-        /* Main content wrapper to align side containers and clock horizontally */
+        /* Main content wrapper to align main clock display centrally */
         .main-content-wrapper {
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center; /* Center the clock display */
             width: 100%;
             padding: 20px; /* Add some padding to the main wrapper */
             box-sizing: border-box; /* Include padding in width */
@@ -327,11 +306,7 @@
         /* Responsive adjustments */
         @media (max-width: 900px) {
             .main-content-wrapper {
-                flex-direction: column; /* Stack vertically on smaller screens */
-            }
-            .side-text-container {
-                margin: 1.5rem 0; /* Adjust margin for vertical stacking */
-                font-size: 2.5rem; /* Slightly smaller font for mobile */
+                flex-direction: column; /* Stacks the clock vertically if other elements were present */
             }
             #headerTitle {
                 font-size: 2.5rem;
@@ -374,12 +349,57 @@
                 padding: 10px 20px;
                 font-size: 0.95rem;
             }
-            .side-text-container {
-                font-size: 1.8rem; /* Further reduce font size on very small screens for better fit */
-                line-height: 0.9; /* Adjust line height for a tighter look when smaller */
+            #headerTitle {
+                font-size: 2rem;
+            }
+        }
+
+        /* Further adjustments for very small phone screens (e.g., <480px) */
+        @media (max-width: 480px) {
+            #timeDisplay {
+                font-size: 3rem; /* Smaller font for time on very small screens */
+            }
+            #dateDisplay {
+                font-size: 1.4rem; /* Smaller font for date */
+            }
+            .time-labels {
+                font-size: 0.65rem; /* Slightly smaller labels */
+                letter-spacing: 0.08em;
+            }
+            .day-indicator-item {
+                font-size: 0.6rem; /* Smaller day labels */
+            }
+            .day-circle {
+                width: 12px;
+                height: 12px;
+            }
+            .ampm-item {
+                font-size: 0.8rem; /* Smaller AM/PM text */
+            }
+            .ampm-circle {
+                width: 12px;
+                height: 12px;
+            }
+            .clock-display-container {
+                padding: 1rem 0.5rem; /* Reduced padding for compact display */
             }
             #headerTitle {
-                font-size: 2rem; /* Further adjust header size for very small screens */
+                font-size: 1.75rem; /* Even smaller header for very small screens */
+            }
+        }
+
+        @media (max-width: 375px) { /* Targeting extra small devices like iPhone SE */
+            #timeDisplay {
+                font-size: 2.5rem;
+            }
+            #dateDisplay {
+                font-size: 1.2rem;
+            }
+            .time-labels {
+                font-size: 0.6rem;
+            }
+            .day-indicator-wrapper {
+                gap: 0.5rem; /* Tighter spacing for days */
             }
         }
     </style>
@@ -388,22 +408,11 @@
 
     <!-- Header Container -->
     <div id="headerContainer">
-        <div id="headerTitle" class="digital-blue-text">WELLCOME</div>
+        <div id="headerTitle" class="digital-blue-text">WELLCOME TO DIGITAL CLOCK</div>
     </div>
 
-    <!-- Main content wrapper to align side containers and clock horizontally -->
+    <!-- Main content wrapper to align the clock horizontally -->
     <div class="main-content-wrapper">
-        <!-- Left Side Container: DIGITAL -->
-        <div class="side-text-container">
-            <span>D</span>
-            <span>I</span>
-            <span>G</span>
-            <span>I</span>
-            <span>T</span>
-            <span>A</span>
-            <span>L</span>
-        </div>
-
         <!-- Main Digital Wall Clock Display -->
         <div class="clock-display-container relative">
             <!-- Date Display: DD MM YY -->
@@ -428,7 +437,7 @@
                     <div class="day-indicator-item" id="day-tue">
                         <div class="day-circle"></div>
                         <span>TUE</span>
-                    </div>
+                        </div>
                     <div class="day-indicator-item" id="day-wed">
                         <div class="day-circle"></div>
                         <span>WED</span>
@@ -459,15 +468,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Right Side Container: CLOCK -->
-        <div class="side-text-container">
-            <span>C</span>
-            <span>L</span>
-            <span>O</span>
-            <span>C</span>
-            <span>K</span>
         </div>
     </div>
 
@@ -516,7 +516,6 @@
         // --- DOM Element References ---
         const timeDisplay = document.getElementById('timeDisplay');
         const dateDisplay = document.getElementById('dateDisplay');
-        // Removed headerTimeDisplay reference
         const dayIndicators = {
             sun: document.getElementById('day-sun'),
             mon: document.getElementById('day-mon'),
@@ -601,8 +600,6 @@
                     alarm.triggered = false;
                 });
                 lastMinuteChecked = currentMinute;
-                // No need to save here unless alarms array state genuinely changes.
-                // saveAlarms(); // Only uncomment if you notice state issues that need saving every minute.
             }
 
             // Update time display (HH:MM:SS in 12-hour format)
@@ -728,156 +725,122 @@
                 const li = document.createElement('li');
                 li.className = `flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-900 bg-opacity-70 p-3 rounded-md mb-3 border border-gray-700 transition-all duration-300 ease-in-out ${alarm.enabled ? '' : 'opacity-50 line-through'}`;
 
-                // Convert stored 24-hour time to 12-hour format for display in the list
-                const [hours24, minutes] = alarm.time.split(':').map(Number);
-                const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
-                const ampm = hours24 < 12 ? 'AM' : 'PM';
-                const displayTime = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
-
-                li.innerHTML = `
-                    <div class="flex-grow">
-                        <span class="text-lg">${displayTime} - ${alarm.label || 'No Label'}</span>
-                    </div>
-                    <div class="flex items-center space-x-3 mt-2 sm:mt-0">
-                        <label class="toggle-switch" aria-label="Toggle alarm ${alarm.label || displayTime}">
-                            <input type="checkbox" ${alarm.enabled ? 'checked' : ''} onchange="toggleAlarm(${index})">
-                            <span class="slider"></span>
-                        </label>
-                        <button onclick="editAlarm(${index})" class="text-yellow-400 hover:text-yellow-300 text-sm p-1 rounded transition-colors duration-200">Edit</button>
-                        <button onclick="deleteAlarm(${index})" class="text-red-400 hover:text-red-300 text-sm p-1 rounded transition-colors duration-200">Delete</button>
-                    </div>
+                // Alarm details (Time and Label)
+                const alarmDetails = document.createElement('div');
+                alarmDetails.className = 'flex flex-col flex-grow mb-2 sm:mb-0';
+                alarmDetails.innerHTML = `
+                    <span class="text-xl font-semibold digital-blue-text">${formatTime12hr(alarm.time)}</span>
+                    <span class="text-gray-400 text-sm">${alarm.label || 'Alarm'}</span>
                 `;
+                li.appendChild(alarmDetails);
+
+                // Controls (Toggle, Delete)
+                const controls = document.createElement('div');
+                controls.className = 'flex items-center space-x-3 ml-auto';
+
+                // Toggle Switch
+                const toggleLabel = document.createElement('label');
+                toggleLabel.className = 'toggle-switch';
+                const toggleInput = document.createElement('input');
+                toggleInput.type = 'checkbox';
+                toggleInput.checked = alarm.enabled;
+                toggleInput.onchange = () => toggleAlarm(alarm.id);
+                const sliderSpan = document.createElement('span');
+                sliderSpan.className = 'slider';
+                toggleLabel.appendChild(toggleInput);
+                toggleLabel.appendChild(sliderSpan);
+                controls.appendChild(toggleLabel);
+
+                // Delete Button (SVG for professional icon)
+                const deleteButton = document.createElement('button');
+                deleteButton.onclick = () => deleteAlarm(alarm.id);
+                deleteButton.className = 'p-2 rounded-full bg-red-600 hover:bg-red-700 transition-colors duration-200 shadow-md';
+                deleteButton.innerHTML = `
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1zm2 3a1 1 0 011-1h4a1 1 0 110 2H8a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                `;
+                deleteButton.title = "Delete Alarm";
+                controls.appendChild(deleteButton);
+
+                li.appendChild(controls);
                 alarmList.appendChild(li);
             });
         }
 
         /**
-         * Deletes an alarm from the list.
-         * @param {number} index - The index of the alarm to delete.
+         * Converts 24-hour time (HH:MM) to 12-hour format (HH:MM AM/PM).
+         * @param {string} time24hr - Time in "HH:MM" format.
+         * @returns {string} Time in "HH:MM AM/PM" format.
          */
-        function deleteAlarm(index) {
-            alarms.splice(index, 1); // Remove alarm from array
-            saveAlarms(); // Save changes to local storage
-            renderAlarms(); // Re-render list to reflect deletion
-        }
-
-        /**
-         * Edits an existing alarm's time and label using the custom modal.
-         * @param {number} index - The index of the alarm to edit.
-         */
-        function editAlarm(index) {
-            const alarmToEdit = alarms[index];
-            // Store current alarm details in modal for editing
-            modalAlarmLabel.textContent = 'Edit Alarm';
-            // Set input field value to current alarm time (24hr format as it's an input type="time")
-            document.getElementById('alarmTime').value = alarmToEdit.time;
-            document.getElementById('alarmLabel').value = alarmToEdit.label.replace(' (Snoozed)', ''); // Remove snooze label for editing
-
-            // Temporarily change the form submission listener for editing
-            alarmForm.onsubmit = function(e) {
-                e.preventDefault();
-                const newTime = document.getElementById('alarmTime').value;
-                let newLabel = document.getElementById('alarmLabel').value;
-
-                if (!newTime) {
-                    // Show a temporary message in the alarm list area or a console warning
-                    console.warn('Alarm time is required for editing.');
-                    return;
-                }
-                // Basic time format validation (HH:MM)
-                if (!/^\d{2}:\d{2}$/.test(newTime)) {
-                    console.warn('Invalid time format. Please use HH:MM (24-hour format).');
-                    return;
-                }
-
-                alarms[index] = {
-                    time: newTime,
-                    label: newLabel,
-                    triggered: false, // Reset triggered status on edit
-                    enabled: alarmToEdit.enabled // Retain original enabled status
-                };
-                saveAlarms();
-                renderAlarms();
-                alarmForm.reset(); // Clear form fields
-                // Revert form submission listener to default "add alarm"
-                alarmForm.onsubmit = addAlarmHandler;
-
-                // Show a temporary confirmation using the alarm modal for consistency
-                const [hours24, minutes] = newTime.split(':').map(Number);
-                const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
-                const ampm = hours24 < 12 ? 'AM' : 'PM';
-                const displayTime = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
-                showAlarmModal('Alarm Updated!', `New time: ${displayTime}${newLabel ? ' - ' + newLabel : ''}`);
-                alarmSound.pause(); // Ensure sound is stopped if it was accidentally playing for this modal
-                alarmSound.currentTime = 0;
-                setTimeout(() => { alarmModal.classList.add('hidden'); }, 2000);
-            };
-
-            // You might want to scroll to the form or make it prominent when edit is clicked
-            // document.getElementById('alarmForm').scrollIntoView({ behavior: 'smooth' });
+        function formatTime12hr(time24hr) {
+            const [hours, minutes] = time24hr.split(':').map(Number);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = String(hours % 12 || 12).padStart(2, '0');
+            return `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
         }
 
         /**
          * Toggles the enabled state of an alarm.
-         * @param {number} index - The index of the alarm to toggle.
+         * @param {string} id - The unique ID of the alarm to toggle.
          */
-        function toggleAlarm(index) {
-            alarms[index].enabled = !alarms[index].enabled;
-            // When toggling, reset triggered state regardless, as it's a manual intervention
-            alarms[index].triggered = false;
-            saveAlarms(); // Save changes to local storage
-            renderAlarms(); // Re-render to update UI
+        function toggleAlarm(id) {
+            const alarmIndex = alarms.findIndex(alarm => alarm.id === id);
+            if (alarmIndex > -1) {
+                alarms[alarmIndex].enabled = !alarms[alarmIndex].enabled;
+                saveAlarms();
+                renderAlarms(); // Re-render to update UI
+            }
         }
 
         /**
-         * Handles the form submission for adding new alarms.
-         * This is the default behavior.
+         * Deletes an alarm from the list.
+         * @param {string} id - The unique ID of the alarm to delete.
          */
-        function addAlarmHandler(e) {
-            e.preventDefault(); // Prevent default form submission
-            const time = document.getElementById('alarmTime').value; // This is already in 24hr HH:MM
-            const label = document.getElementById('alarmLabel').value;
+        function deleteAlarm(id) {
+            alarms = alarms.filter(alarm => alarm.id !== id);
+            saveAlarms();
+            renderAlarms(); // Re-render to update UI
+        }
 
-            // Basic validation for time input from form
+        // --- Event Listeners ---
+
+        // Handle alarm form submission
+        alarmForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const alarmTimeInput = document.getElementById('alarmTime');
+            const alarmLabelInput = document.getElementById('alarmLabel');
+
+            const time = alarmTimeInput.value;
+            const label = alarmLabelInput.value.trim();
+
             if (!time) {
-                // Using console.error here. For a truly professional app, a small message near the input would be better.
-                console.error('Alarm time is required.');
+                // In a real app, you might show a user-friendly error message
+                console.error("Alarm time is required.");
                 return;
             }
 
-            // Add new alarm with enabled: true by default and a unique ID
-            alarms.push({ id: generateUniqueId(), time, label, triggered: false, enabled: true });
-            alarmForm.reset(); // Clear form fields
-            saveAlarms(); // Save new alarm to local storage
-            renderAlarms(); // Re-render list to show new alarm
+            const newAlarm = {
+                id: generateUniqueId(),
+                time: time, // Stored in 24-hour format
+                label: label,
+                triggered: false,
+                enabled: true
+            };
+            alarms.push(newAlarm);
+            saveAlarms(); // Save after adding new alarm
+            renderAlarms(); // Re-render the list
+            alarmForm.reset(); // Clear the form
+        });
 
-            // Show a temporary confirmation message using the modal
-            // Convert time to 12-hour format for confirmation modal display
-            const [hours24, minutes] = time.split(':').map(Number);
-            const displayHours = String(hours24 % 12 || 12).padStart(2, '0');
-            const ampm = hours24 < 12 ? 'AM' : 'PM';
-            const displayTime = `${displayHours}:${String(minutes).padStart(2, '0')} ${ampm}`;
+        // --- Initialization ---
 
-            showAlarmModal('Alarm Set!', `For ${displayTime}${label ? ' - ' + label : ''}`);
-            alarmSound.pause(); // Ensure sound is stopped if it was accidentally playing for this modal
-            alarmSound.currentTime = 0;
-            // Hide the modal after a short delay for confirmation message
-            setTimeout(() => {
-                alarmModal.classList.add('hidden');
-            }, 2000);
-        }
-
-        // --- Event Listeners and Initialization ---
-
-        // Set the default form submission listener
-        alarmForm.addEventListener('submit', addAlarmHandler);
-
-        // Initialize clock update interval to run every second
-        setInterval(updateClock, 1000);
-
-        // Initial calls to set up the clock and render existing alarms on page load
-        updateClock();
-        renderAlarms();
+        // Initial rendering of alarms when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAlarms();
+            updateClock(); // Call once immediately to prevent initial blank display
+            setInterval(updateClock, 1000); // Update every second
+        });
     </script>
 </body>
 </html>
